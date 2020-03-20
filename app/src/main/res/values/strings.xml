@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">ValenBike</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="bottom_menu_map">Mapa</string>
+    <string name="bottom_menu_stations">Estaciones</string>
+    <string name="bottom_menu_history">Historial</string>
+    <string name="bottom_menu_information">Información</string>
 </resources>

@@ -1,16 +1,16 @@
-package disca.dadm.valenbike.ui.notifications;
+package disca.dadm.valenbike.ui.stations;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class NotificationsViewModel extends ViewModel {
+public class StationsViewModel extends ViewModel {
 
     private MutableLiveData<String> mText;
 
-    public NotificationsViewModel() {
+    public StationsViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is notifications fragment");
+        mText.setValue("This is stations fragment");
     }
 
     public LiveData<String> getText() {

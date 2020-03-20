@@ -1,4 +1,4 @@
-package disca.dadm.valenbike.ui.dashboard;
+package disca.dadm.valenbike.ui.information;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,17 +14,17 @@ import androidx.lifecycle.ViewModelProviders;
 
 import disca.dadm.valenbike.R;
 
-public class DashboardFragment extends Fragment {
+public class InformationFragment extends Fragment {
 
-    private DashboardViewModel dashboardViewModel;
+    private InformationViewModel informationViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        dashboardViewModel =
-                ViewModelProviders.of(this).get(DashboardViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
-        final TextView textView = root.findViewById(R.id.text_dashboard);
-        dashboardViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
+        informationViewModel =
+                ViewModelProviders.of(this).get(InformationViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_history, container, false);
+        final TextView textView = root.findViewById(R.id.text_notifications);
+        informationViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 textView.setText(s);
