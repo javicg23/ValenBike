@@ -4,4 +4,17 @@
     <string name="bottom_menu_stations">Estaciones</string>
     <string name="bottom_menu_history">Historial</string>
     <string name="bottom_menu_information">Información</string>
+    <string name="cardview_functioning_title1">Para obtener una bicicleta</string>
+    <string name="cardview_functioning_body1">Sencillez y rapidez definen al funcionamiento de Valenbisi. Para hacer uso de una bicicleta, basta con aproximar al Terminal de Acceso al servicio la tarjeta de Abono de Larga Duración, introducir el código PIN y retirar la bicicleta elegida.
+        \n\nPara abonados de corta duración, una vez obtenido en el abono en los Terminales habilitados al efecto, bastará con teclear el código numérico asignado, seleccionar la bicicleta que queramos y comenzar a hacer uso de ella.
+        \n\nPara el primer uso de la tarjeta de Abono Asociado, bastará con situar su tarjeta sobre el lector y marcar el código facilitado en la página web de Valenbisi (www.valenbisi.es)
+        \n\nPor seguridad, desde el terminal hasta el punto de anclaje de la bicicleta, el usuario dispone de sesenta segundos de tiempo para retirar la bicicleta.
+        \n\n¡Disfrute de un buen paseo!</string>
+    <string name="cardview_functioning_title2">Para devolver la bicicleta</string>
+    <string name="cardview_functioning_body2">Una vez finalizado el trayecto sólo es necesario aproximar la bicicleta hasta el punto de anclaje disponible.
+        \n\nPara facilitar a los usuarios que puedan verificar que su bicicleta quede bien fijada en el punto de anclaje, el sistema emitirá una señal sonora una vez realizado el anclaje de la bici, que nos indicará que se ha devuelto correctamente.
+        \n\n<b>Cuidado</b>: Si la bicicleta queda mal enganchada, el sistema seguirá contando como si continuase su uso.
+        \n\nAnte cualquier problema al anclar la bicicleta, puede contactar con nosotros en el 900 900 722. </string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
