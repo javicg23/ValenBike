@@ -6,16 +6,19 @@
     android:layout_height="match_parent" >
 
     <!--Container that will display the rest of elements on the screen-->
+
+    <!--BottomNavigationView that will display the main actions of the app-->
+
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomView"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!--BottomNavigationView that will display the main actions of the app-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomView"
         android:layout_width="0dp"
@@ -23,8 +26,9 @@
         android:background="@color/colorPrimaryDark"
         app:itemIconTint="@android:color/white"
         app:itemTextColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
 
