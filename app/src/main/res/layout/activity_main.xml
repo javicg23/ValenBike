@@ -6,9 +6,6 @@
     android:layout_height="match_parent" >
 
     <!--Container that will display the rest of elements on the screen-->
-
-    <!--BottomNavigationView that will display the main actions of the app-->
-
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="0dp"
@@ -19,6 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!--BottomNavigationView that will display the main actions of the app-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomView"
         android:layout_width="0dp"
