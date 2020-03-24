@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         // Sets the listener to be notified when any element of the BottomNavigationView is clicked
         ((BottomNavigationView) findViewById(R.id.bottomView)).setOnNavigationItemSelectedListener(this);
 
