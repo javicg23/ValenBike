@@ -16,6 +16,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -31,6 +32,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
+    private Marker markerSearch;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,8 +63,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         LatLng latLng = new LatLng(address.getLatitude(),address.getLongitude());
                         if (LIMIT_MAP.southwest.longitude < latLng.longitude && latLng.longitude  < LIMIT_MAP.northeast.longitude &&
                                 LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude) {
-                            map.addMarker(new MarkerOptions().position(latLng).title(location));
-                            map.animateCamera(CameraUpdateFactory.newLatLngZoom( latLng,13));
+                            if (markerSearch != null) {
+                                markerSearch.remove();
+                            }
+                            markerSearch = map.addMarker(new MarkerOptions().position(latLng).draggable(true));
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom( latLng,17));
                         } else {
                             showSnackBar(rootView,getString(R.string.map_location_out_bounds));
                         }
