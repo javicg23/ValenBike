@@ -58,7 +58,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-                    android:id="@+id/tvStationTitle"
+                    android:id="@+id/tvStationName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="..."
@@ -69,10 +69,9 @@
                     android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:text="@string/adress_station_fragment"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvStationTitle" />
+                    app:layout_constraintTop_toBottomOf="@+id/tvStationName" />
 
                 <TextView
                     android:id="@+id/tvAdress"
@@ -136,6 +135,15 @@
                     android:text="@string/notifyfree_station_fragment"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/cbBikes" />
+
+                <ImageButton
+                    android:id="@+id/ibFavourite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/cardview_shadow_end_color"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@android:drawable/btn_star_big_off" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
