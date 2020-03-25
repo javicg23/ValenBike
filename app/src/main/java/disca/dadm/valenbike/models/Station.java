@@ -5,9 +5,9 @@ public class Station extends disca.dadm.valenbike.database.Station{
     private boolean expanded;
     private boolean arrowDown;
 
-    public Station(String title) {
-        super();
-        this.title = this.name;
+    public Station(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
+        super(name, address, numBikes, numGaps, favourite, notify);
+        this.title = name;
         this.expanded = false;
         this.arrowDown = false;
     }
