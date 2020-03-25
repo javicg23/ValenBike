@@ -10,17 +10,17 @@ import androidx.room.Update;
 import java.util.List;
 
 @Dao
-public interface EstacionDao {
+public interface StationDao {
 
-    @Query("SELECT * FROM estacion")
-    List<Estacion> getEstaciones();
+    @Query("SELECT * FROM station")
+    List<Station> getStations();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long addEstacion(Estacion estacion);
+    long addStation(Station station);
 
     @Update
-    void updateEstacion(Estacion estacion);
+    void updateStation(Station station);
 
     @Delete
-    void deleteEstacion(Estacion estacion);
+    void deleteStation(Station station);
 }

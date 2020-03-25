@@ -18,4 +18,11 @@
         \n\nAnte cualquier problema al anclar la bicicleta, puede contactar con nosotros en el 900 900 722. </string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="name_station_fragment">Nombre: </string>
+    <string name="adress_station_fragment">Direccion: </string>
+    <string name="bikes_station_fragment">Bicicletas disponibles: </string>
+    <string name="frees_station_fragment">Huecos disponibles: </string>
+    <string name="fav_station_fragment">Favorita</string>
+    <string name="notifybike_station_fragment">Notificar si hay bicicleta disponible</string>
+    <string name="notifyfree_station_fragment">Notificar si hay hueco disponible</string>
 </resources>

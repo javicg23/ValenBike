@@ -10,17 +10,17 @@ import androidx.room.Update;
 import java.util.List;
 
 @Dao
-public interface ViajeDao {
+public interface JourneyDao {
 
-        @Query("SELECT * FROM viaje")
-        List<Estacion> getViajes();
+        @Query("SELECT * FROM journey")
+        List<Journey> getJourneys();
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        long addViaje(Viaje viaje);
+        long addJourney(Journey journey);
 
         @Update
-        void updateViaje(Viaje viaje);
+        void updateJourney(Journey journey);
 
         @Delete
-        void deleteViaje(Viaje viaje);
+        void deleteJourney(Journey journey);
 }
