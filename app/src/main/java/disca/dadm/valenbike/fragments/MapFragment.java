@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
@@ -44,6 +45,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
     private Marker markerSearch;
+    private int mapType = GoogleMap.MAP_TYPE_NORMAL;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,14 +53,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Inflate the layout for this fragment
         final View rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
-        //Configure Mapview and sync to google map.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
         searchView = rootView.findViewById(R.id.searchBar);
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
+
+        //Configure Mapview and sync to google map.
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         searchViewListener(rootView);
         fabsListeners(rootView);
@@ -70,7 +72,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fabMapType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSnackBar(rootView,"pulsado mapa tipo");
+                popupMenu(rootView);
             }
         });
 
@@ -87,6 +89,41 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 showSnackBar(rootView,"pulsado localizacion");
             }
         });
+    }
+
+    private void popupMenu(View rootView) {
+        //Creating the instance of PopupMenu
+        PopupMenu popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType) );
+        // to inflate the menu resource (defined in XML) into the PopupMenu
+        popup.getMenuInflater().inflate(R.menu.map_type, popup.getMenu());
+        //popup with OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.map_type_traffic :
+                        changeMapType(GoogleMap.MAP_TYPE_NORMAL);
+                        break;
+                    case R.id.map_type_satellite:
+                        changeMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                        break;
+                    case R.id.map_type_terrain:
+                        changeMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+
+        popup.show();//show the popup menu
+    }
+
+    private void changeMapType(int mapType) {
+        if (this.mapType != mapType){
+            this.mapType = mapType;
+            map.setMapType(mapType);
+        }
     }
 
     private void searchViewListener(final View rootView) {
@@ -107,6 +144,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         this.map = googleMap;
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
+        map.setPadding(0,160,0,0);
     }
 
     private void showSnackBar(View view, String msg) {
