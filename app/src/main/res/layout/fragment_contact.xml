@@ -1,13 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#E4E3E3"
     tools:context=".fragments.ContactFragment">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewContact"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/ivWeb"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-</FrameLayout>
+    <ImageView
+        android:id="@+id/ivWeb"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_margin="15dp"
+        android:src="@drawable/valenbisi_icon"
+        android:scaleType="fitXY"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewContact"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ivInstagram"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivInstagram"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_margin="15dp"
+        android:src="@drawable/instagram_icon"
+        android:scaleType="fitXY"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewContact"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ivFacebook"
+        app:layout_constraintStart_toEndOf="@id/ivWeb" />
+
+    <ImageView
+        android:id="@+id/ivFacebook"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_margin="15dp"
+        android:src="@drawable/facebook_icon"
+        android:scaleType="fitXY"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewContact"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ivTwitter"
+        app:layout_constraintStart_toEndOf="@id/ivInstagram"/>
+
+    <ImageView
+        android:id="@+id/ivTwitter"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_margin="15dp"
+        android:src="@drawable/twitter_icon"
+        android:scaleType="fitXY"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewContact"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivFacebook" />
+</androidx.constraintlayout.widget.ConstraintLayout>
