@@ -1,24 +1,28 @@
 package disca.dadm.valenbike.fragments;
 
-import android.app.DownloadManager;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,47 +36,57 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Queue;
 
 import disca.dadm.valenbike.R;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
+    private View rootView;
     private GoogleMap map;
     private SearchView searchView;
-    private FloatingActionButton fabMapType, fabDirections, fabLocation;
+    private FloatingActionButton fabMapType, fabDirections;
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
     private Marker markerSearch;
+    private Location lastLocation;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
+    private FusedLocationProviderClient locationProviderClient;
+    private MyGoogleLocationCallback callback;
+    private LocationRequest request;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View rootView = inflater.inflate(R.layout.fragment_map, container, false);
+        rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
         searchView = rootView.findViewById(R.id.searchBar);
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
-        fabLocation = rootView.findViewById(R.id.fabLocation);
 
-        //Configure Mapview and sync to google map.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        searchViewListener(rootView);
-        fabsListeners(rootView);
+        initMapAndLocation();
+        searchViewListener();
+        fabsListeners();
 
         return rootView;
     }
 
-    private void fabsListeners(final View rootView) {
+    /**
+     * Disables the location updates (if enabled).
+     */
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Check the location framework in use
+        disableLocation();
+    }
+
+    private void fabsListeners() {
         fabMapType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popupMenu(rootView);
+                popupMenu();
             }
         });
 
@@ -82,18 +96,119 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 showSnackBar(rootView,"pulsado como llegar");
             }
         });
-
-        fabLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showSnackBar(rootView,"pulsado localizacion");
-            }
-        });
     }
 
-    private void popupMenu(View rootView) {
+    private void initMapAndLocation() {
+        //Configure Mapview and sync to google map.
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        callback = new MyGoogleLocationCallback();
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
+        request = new LocationRequest();
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        request.setInterval(3000);
+        request.setFastestInterval(2000);
+
+        checkLocationPermissions(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    /**
+     * Checks that permissions are granted for the selected location framework.
+     *
+     * @param permission Permission required to request updates from the selected location provider.
+     */
+    private void checkLocationPermissions( String permission) {
+        if (isLocationPermissionGranted(permission)) {
+            locationProviderClient.requestLocationUpdates(request, callback, null);
+        }
+    }
+
+    /**
+     * Checks that permissions are granted for the selected location framework.
+     *
+     * @param permission  Permission required to request updates from the selected location provider.
+     */
+    private boolean isLocationPermissionGranted(String permission) {
+
+        // Determine whether the user has granted that particular permission
+        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), permission)) {
+            return true;
+        }
+        // If not, display an activity to request that permission
+        else {
+            requestPermissions((new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION}), LocationRequest.PRIORITY_HIGH_ACCURACY);
+            return false;
+        }
+    }
+
+    /**
+     * This callback is executed whenever the user has been asked to grant permissions.
+     * In this case it will deal with permission to request fine/coarse location updates,
+     * and to remove any previous requested location update.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        // Check whether any permission has been granted
+        if ((grantResults.length > 0) && (PackageManager.PERMISSION_GRANTED == grantResults[0])) {
+            locationProviderClient.requestLocationUpdates(request, callback, null);
+        }
+        // Notify the user that permission were not granted
+        else {
+            showSnackBar(rootView, getString(R.string.permissions_not_granted));
+        }
+    }
+
+    /**
+     * Tries to disable location updates for the selected location framework.
+     */
+    private void disableLocation() {
+        /*
+         * If required permissions have been granted then
+         * stop receiving location updates from the selected framework.
+         */
+        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+            locationProviderClient.removeLocationUpdates(callback);
+        }
+        // If not, display an activity to request that permission
+        else {
+            ActivityCompat.requestPermissions(
+                    getActivity(),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LocationRequest.PRIORITY_HIGH_ACCURACY);
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.map = googleMap;
+        // Constrain the camera target to the Valencia bounds.
+        map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
+        map.setPadding(0,160,0,0);
+    }
+
+    /**
+     * Updates the user interface to display the new latitude and longitude.
+     * It will also start an asynchronous task to translate those coordinates into a human readable address.
+     */
+    private void updateUI(Location location) {
+        lastLocation = location;
+        map.setMyLocationEnabled(true);
+    }
+
+    private void changeMapType(int mapType) {
+        if (this.mapType != mapType){
+            this.mapType = mapType;
+            map.setMapType(mapType);
+        }
+    }
+
+    private void popupMenu() {
         //Creating the instance of PopupMenu
-        PopupMenu popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType) );
+        PopupMenu popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType));
         // to inflate the menu resource (defined in XML) into the PopupMenu
         popup.getMenuInflater().inflate(R.menu.map_type, popup.getMenu());
         //popup with OnMenuItemClickListener
@@ -115,22 +230,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 return false;
             }
         });
-
-        popup.show();//show the popup menu
+        //show the popup menu
+        popup.show();
     }
 
-    private void changeMapType(int mapType) {
-        if (this.mapType != mapType){
-            this.mapType = mapType;
-            map.setMapType(mapType);
-        }
-    }
-
-    private void searchViewListener(final View rootView) {
+    private void searchViewListener() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return querySubmit(rootView,query);
+                return querySubmit(query);
             }
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -139,21 +247,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.map = googleMap;
-        // Constrain the camera target to the Valencia bounds.
-        map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
-        map.setPadding(0,160,0,0);
-    }
-
     private void showSnackBar(View view, String msg) {
         Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
         snackbar.setAnchorView(R.id.bottomView);
         snackbar.show();
     }
 
-    private boolean querySubmit(View rootView, String query) {
+    private boolean querySubmit(String query) {
         String location = query;
         location = location.toLowerCase();
 
@@ -200,4 +300,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return false;
     }
 
+    private class MyGoogleLocationCallback extends LocationCallback {
+
+        /**
+         * This callback is executed whenever a new location update is received.
+         */
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            // Update the user interface
+            updateUI(locationResult.getLocations().get(0));
+        }
+    }
 }

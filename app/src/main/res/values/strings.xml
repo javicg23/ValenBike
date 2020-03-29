@@ -23,4 +23,5 @@
     <string name="map_type_terrain">Terreno</string>
     <string name="map_type_traffic">Tráfico</string>
     <string name="map_type_satellite">Satélite</string>
+    <string name="permissions_not_granted">No se ha dado acceso a los permisos requeridos para localizar el dispositivo</string>
 </resources>
