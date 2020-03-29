@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">ValenBike</string>
+    <string name="maps_api_key">AIzaSyD19z-68T6MRVwWgr1y19yzLr0P1FkF8mg</string>
     <string name="bottom_menu_map">Mapa</string>
     <string name="bottom_menu_stations">Estaciones</string>
     <string name="bottom_menu_history">Historial</string>
@@ -15,6 +16,37 @@
         \n\nPara facilitar a los usuarios que puedan verificar que su bicicleta quede bien fijada en el punto de anclaje, el sistema emitirá una señal sonora una vez realizado el anclaje de la bici, que nos indicará que se ha devuelto correctamente.
         \n\n<b>Cuidado</b>: Si la bicicleta queda mal enganchada, el sistema seguirá contando como si continuase su uso.
         \n\nAnte cualquier problema al anclar la bicicleta, puede contactar con nosotros en el 900 900 722. </string>
+
+    <string name="cardview_faq_title1">Tengo un abono de Corta Duración ¿Cuando me devuelven la fianza?</string>
+    <string name="cardview_faq_body1">Una vez que el usuario tiene el abono caducado, en 24–48 horas damos orden a su entidad bancaria para que desbloquee su fianza. Dependiendo de su entidad, se le reembolsará de 1 a 21 días.</string>
+    <string name="cardview_faq_title2">¿Es normal que me aparezca realizado un cargo sin tener aún la tarjeta Valenbisi Larga Duración?</string>
+    <string name="cardview_faq_body2">Sí, le informamos que la primera gestión es el cargo de los 29.21 Euros; una vez aceptadas por su entidad, se gestiona su tarjeta Valenbisi y se le envía por correo la dirección facilitada en el formulario de alta.</string>
+    <string name="cardview_faq_title3">Quiero devolver una bicicleta y la estación está llena</string>
+    <string name="cardview_faq_body3">En ese caso, debe pasar su tarjeta de usuario por delante del Lector de Tarjetas, el sistema automáticamente le reconocerá y le dará 15 minutos extra de tiempo gratuito, para que pueda desplazarse a cualquiera de las estaciones más próximas. Asimismo, en el Terminal de Acceso al Servicio podrá localizar las estaciones más cercanas, así como la situación en la que se encuentran (número de bicicletas disponibles y espacios de anclaje libres).</string>
+    <string name="cardview_faq_title4">¿Donde puedo obtener un mapa actualizado de las estaciones de bicicletas?</string>
+    <string name="cardview_faq_body4">Actualmente, puede ver todas las estaciones en funcionamiento en el mapa de la página web www.valenbisi.es. En cualquiera de las estaciones, en el Terminal de Acceso al Servicio, podrá localizar en un mapa las estaciones más próximas, así como su situación en tiempo real (bicicletas disponibles y espacios libres).</string>
+    <string name="cardview_faq_title5">¿Mi tarjeta de larga duración está bloqueada porque he introducido mal el código PIN, como puedo desbloquearla?</string>
+    <string name="cardview_faq_body5">Debe ponerse en contacto con nosotros en el 900 900 722 o enviarnos un e-mail desde la página web www.valenbisi.es, indicándonos su nº de abonado, DNI, correo electrónico (el mismo que escribió en su solicitud) y el PIN que introdujo para confirmar sus datos, por política de seguridad.</string>
+    <string name="cardview_faq_title6">¿Cuánto tiempo se tarda en gestionar una solicitud de abono?</string>
+    <string name="cardview_faq_body6">Una vez recibida su solicitud, le informamos que el plazo estimado para la gestión y envío de su tarjeta oscila entre 15–20 días.</string>
+    <string name="cardview_faq_title7">He perdido mi tarjeta Valenbisi, ¿me podrían enviar un duplicado?</string>
+    <string name="cardview_faq_body7">Debe ponerse en contacto con nosotros en el 900 900 722, o bien, solicitarlo desde el apartado "Mi cuenta" de la página web, opción "Deseo solicitar un nuevo abono". La tarjeta tarda aproximadamente 20 días en llegar a su domicilio. También tiene la opción de acudir a nuestra oficina de atención al cliente en la GALERIA COMERCIAL SAPIRIS, calle Asturias, 34, donde se le entregará el duplicado en el momento.
+        \n\nTodas las opciones suponen un coste de 5 Euros que deberá abonar en su cuenta Valenbisi.</string>
+    <string name="cardview_faq_title8">Mi tarjeta está bloqueada por que me aparece que tengo una bici en curso ¿qué debo hacer?</string>
+    <string name="cardview_faq_body8">Debe ponerse en contacto con nosotros en el 900 900 722 o cumplimentar el formulario online que aparece en la página web, apartado “CONTACTO” . Es necesario que nos confirme el número de estación dónde dejó anclada la bicicleta; y si es posible, el nº de anclaje y el nº de bici.</string>
+    <string name="cardview_faq_title9">Para actualizar sus datos bancarios</string>
+    <string name="cardview_faq_body9">Para actualizar sus datos bancarios deberá acceder al apartado "Mi Cuenta" de la página web www.valenbisi.es, e introducir los datos de su tarjeta de crédito/debito actualizados. La actualización de los datos bancarios, si no tiene saldo pendiente de cobro, generara un cargo de 1 euro que será reintegrado inmediatamente en su cuenta de abonado. Por el contrario, si tiene saldo pendiente de abonar, será cargado durante la transacción de actualización de los datos, quedando su cuenta regularizada en el sistema.</string>
+
+    <string name="cardview_contact_title1">Mi cuenta presenta un trayecto con un cargo anormal o mi cuenta tiene registrada por error una bicicleta en uso</string>
+    <string name="cardview_contact_body1">El coste de uno de mis trayectos me parece excesivo. Visite la página web <u>cas.valenbisi.es</u> para más información</string>
+    <string name="cardview_contact_title2">SERVICIO DE ATENCIÓN TELEFONICA: 900 900 722</string>
+    <string name="cardview_contact_body2">Desde el 1 de Septiembre hasta el 30 de Junio , el horario del servicio de atención telefónica es, de lunes a viernes, de 8:30 a 22:00 horas. Sábados, Domingos y Festivos Nacionales, el horario es de 10:00 a 21:00 horas.
+        \n\nDesde el 1 de Julio  hasta el 31 de Agosto, el horario del servicio de atención telefónica es, de lunes a viernes, de 9:00 a 22:00 horas. Sábados, Domingos y Festivos Nacionales, el horario es de 10:00 a 21:00 horas</string>
+    <string name="cardview_contact_title3">Oficina de Atención al Usuario de Valenbisi</string>
+    <string name="cardview_contact_body3">Si necesita información adicional sobre Valenbisi, acérquese a visitarnos. Nos encontrará en la GALERIA COMERCIAL SAPIRIS, calle Asturias, 34.</string>
+    <string name="cardview_contact_title4">Plano de ubicación Oficina Atención al Cliente</string>
+    <string name="cardview_contact_body4">Nuestro horario es de lunes a viernes, de 10:00 a 14:00 horas y de 16:30 a 20:00 horas. Sabados de 10:00 a 14:00 horas.</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="search_bar_hint">Buscar…</string>
@@ -24,4 +56,11 @@
     <string name="map_type_traffic">Tráfico</string>
     <string name="map_type_satellite">Satélite</string>
     <string name="permissions_not_granted">No se ha dado acceso a los permisos requeridos para localizar el dispositivo</string>
+    <string name="name_station_fragment">Nombre: </string>
+    <string name="adress_station_fragment">Direccion: </string>
+    <string name="bikes_station_fragment">Bicicletas disponibles: </string>
+    <string name="frees_station_fragment">Huecos disponibles: </string>
+    <string name="fav_station_fragment">Favorita</string>
+    <string name="notifybike_station_fragment">Notificar si hay bicicleta disponible</string>
+    <string name="notifyfree_station_fragment">Notificar si hay hueco disponible</string>
 </resources>
