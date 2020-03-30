@@ -25,4 +25,8 @@
     <string name="fav_station_fragment">Favorita</string>
     <string name="notifybike_station_fragment">Notificar si hay bicicleta disponible</string>
     <string name="notifyfree_station_fragment">Notificar si hay hueco disponible</string>
+    <string name="filter_menu_station">Filtrar</string>
+    <string name="fav_filter_menu_station">Estaciones favoritas</string>
+    <string name="notify_filter_menu_station">Estaciones con avisos</string>
+    <string name="selection_filter_menu_station">Filtrar por...</string>
 </resources>

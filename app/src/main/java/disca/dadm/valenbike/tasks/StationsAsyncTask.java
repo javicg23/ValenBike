@@ -30,7 +30,7 @@ public class StationsAsyncTask extends AsyncTask<Void, Void, List<Station>> {
     @Override
     protected void onPostExecute(List<Station> params) {
         if (fragment.get() != null) {
-            fragment.get().initData(params);
+            //fragment.get().initData(params);
         }
     }
 }

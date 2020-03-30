@@ -5,6 +5,8 @@ import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -44,6 +46,26 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         boolean isArrowDown = stationsList.get(position).isExpanded();
         holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
 
+        TextView name = (TextView) holder.expandableLayout.getViewById(R.id.tvStationName);
+        name.setText(station.getName());
+
+        TextView address = (TextView) holder.expandableLayout.getViewById(R.id.tvAdress);
+        address.setText(station.getAddress());
+
+        TextView numBikes = (TextView) holder.expandableLayout.getViewById(R.id.tvNumBikes);
+        numBikes.setText(Integer.toString(station.getNumFreeBikes()));
+
+        TextView numGaps = (TextView) holder.expandableLayout.getViewById(R.id.tvNumFrees);
+        numGaps.setText(Integer.toString(station.getNumFreeGaps()));
+
+        ImageButton favourite = (ImageButton) holder.expandableLayout.getViewById(R.id.ibFavourite);
+        if (station.isFavourite()) {
+            // TODO
+            //favourite.setImageIcon(res/drawable/ic_big_star_on);
+        }
+
+        CheckBox notify = (CheckBox) holder.expandableLayout.getViewById(R.id.cbBikes);
+        notify.setSelected(station.getNotify());
     }
 
     @Override
