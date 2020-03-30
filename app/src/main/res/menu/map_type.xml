@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single"
+        android:id="@+id/groupMapType">
         <item
             android:id="@+id/map_type_terrain"
-            android:title="@string/map_type_terrain" />
+            android:title="@string/map_type_terrain"/>
         <item
             android:id="@+id/map_type_traffic"
-            android:title="@string/map_type_traffic" />
+            android:title="@string/map_type_traffic"
+            android:checked="true"/>
         <item
             android:id="@+id/map_type_satellite"
             android:title="@string/map_type_satellite" />

@@ -11,7 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
+import android.widget.RadioGroup;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -19,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -54,6 +57,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private FusedLocationProviderClient locationProviderClient;
     private MyGoogleLocationCallback callback;
     private LocationRequest request;
+    private PopupMenu popup;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,6 +72,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         initMapAndLocation();
         searchViewListener();
         fabsListeners();
+        createPopupMenu();
 
         return rootView;
     }
@@ -187,7 +192,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         this.map = googleMap;
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
-        map.setPadding(0,160,0,0);
+        map.setPadding(0,170,0,0);
     }
 
     /**
@@ -206,14 +211,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void popupMenu() {
+    private void createPopupMenu() {
         //Creating the instance of PopupMenu
-        PopupMenu popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType));
+        popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType));
         // to inflate the menu resource (defined in XML) into the PopupMenu
         popup.getMenuInflater().inflate(R.menu.map_type, popup.getMenu());
         //popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
+                item.setChecked(true);
                 switch (item.getItemId()){
                     case R.id.map_type_traffic :
                         changeMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -230,6 +236,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 return false;
             }
         });
+    }
+
+    private void popupMenu() {
         //show the popup menu
         popup.show();
     }
@@ -309,6 +318,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         public void onLocationResult(LocationResult locationResult) {
             // Update the user interface
             updateUI(locationResult.getLocations().get(0));
+        }
+
+        @Override
+        public void onLocationAvailability(LocationAvailability locationAvailability) {
+            super.onLocationAvailability(locationAvailability);
+            showSnackBar(rootView,"cambio gps");
+            locationAvailability.isLocationAvailable();
         }
     }
 }
