@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         // Sets the listener to be notified when any element of the BottomNavigationView is clicked
         ((BottomNavigationView) findViewById(R.id.bottomView)).setOnNavigationItemSelectedListener(this);
 
+        //hide action bar
+        getSupportActionBar().hide();
 
         // Starts the app with MapFragment
         getSupportFragmentManager()
@@ -54,8 +56,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 if (fragment == null) {
                     fragment = new MapFragment();
                 }
-                // Display the Map title on the ActionBar
-                getSupportActionBar().setTitle(R.string.bottom_menu_map);
+                //hide action bar
+                getSupportActionBar().hide();
                 break;
 
             // Display StationsFragment
@@ -66,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 if (fragment == null) {
                     fragment = new StationsFragment();
                 }
+                //show action bar
+                getSupportActionBar().show();
                 // Display the Stations title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_stations);
                 break;
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 if (fragment == null) {
                     fragment = new HistoryFragment();
                 }
+                //show action bar
+                getSupportActionBar().show();
                 // Display the HistoryFragment title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_history);
                 break;
@@ -90,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 if (fragment == null) {
                     fragment = new InformationFragment();
                 }
+                //show action bar
+                getSupportActionBar().show();
                 // Display the InformationFragment title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_information);
                 break;
