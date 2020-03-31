@@ -1,178 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card-view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#E4E3E3"
     tools:context=".fragments.HistoryFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/totalTime"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginRight="16dp">
+        android:layout_marginTop="24dp"
+        android:text="Tiempo Total"
+        android:textAlignment="center"
+        style="@style/TextAppearance.AppCompat.Title"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toStartOf="@+id/totalMoney"
+        card-view:layout_constraintHorizontal_bias="0.0"
+        card-view:layout_constraintStart_toStartOf="parent"
+        card-view:layout_constraintTop_toTopOf="parent"
+        card-view:layout_constraintVertical_bias="0.0" />
 
-        <TextView
-            android:id="@+id/tiempoTotal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tiempo Total"
-            android:textAlignment="center"
-            android:textStyle="bold"
-            card-view:layout_constraintBottom_toBottomOf="parent"
-            card-view:layout_constraintEnd_toStartOf="@+id/dineroTotal"
-            card-view:layout_constraintHorizontal_bias="0.0"
-            card-view:layout_constraintStart_toStartOf="parent"
-            card-view:layout_constraintTop_toTopOf="parent"
-            card-view:layout_constraintVertical_bias="0.0" />
-
-        <TextView
-            android:id="@+id/dineroTotal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Dinero Total"
-            android:textAlignment="center"
-            android:textStyle="bold"
-            card-view:layout_constraintBottom_toBottomOf="parent"
-            card-view:layout_constraintEnd_toEndOf="parent"
-            card-view:layout_constraintHorizontal_bias="0.5"
-            card-view:layout_constraintStart_toEndOf="@+id/tiempoTotal"
-            card-view:layout_constraintTop_toTopOf="parent"
-            card-view:layout_constraintVertical_bias="0.0" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/totalMoney"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/fecha"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Fecha"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="0.0"
-                    card-view:layout_constraintStart_toStartOf="parent"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tiempo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="16dp"
-                    android:text="Tiempo"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="1.0"
-                    card-view:layout_constraintStart_toEndOf="@+id/fecha"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/estOrigen"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Origen"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="0.0"
-                    card-view:layout_constraintStart_toStartOf="parent"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/estDestino"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="Destino"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="1.0"
-                    card-view:layout_constraintStart_toEndOf="@+id/estOrigen"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/distancia"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Distancia"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="0.0"
-                    card-view:layout_constraintStart_toStartOf="parent"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/dinero"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="Dinero"
-                    android:textAlignment="textStart"
-                    card-view:layout_constraintBottom_toBottomOf="parent"
-                    card-view:layout_constraintEnd_toEndOf="parent"
-                    card-view:layout_constraintHorizontal_bias="1.0"
-                    card-view:layout_constraintStart_toEndOf="@+id/distancia"
-                    card-view:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </LinearLayout>
+        android:layout_marginTop="24dp"
+        android:text="Dinero Total"
+        android:textAlignment="center"
+        style="@style/TextAppearance.AppCompat.Title"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toEndOf="parent"
+        card-view:layout_constraintHorizontal_bias="0.5"
+        card-view:layout_constraintStart_toEndOf="@+id/totalTime"
+        card-view:layout_constraintTop_toTopOf="parent"
+        card-view:layout_constraintVertical_bias="0.0" />
 
 
-    </androidx.cardview.widget.CardView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerHistory"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toEndOf="parent"
+        card-view:layout_constraintStart_toStartOf="parent"
+        card-view:layout_constraintTop_toBottomOf="@+id/totalTime"
+        card-view:layout_constraintVertical_bias="0.0"
+        card-view:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
