@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.app.DownloadManager;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -28,6 +29,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -56,6 +58,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
     private FusedLocationProviderClient locationProviderClient;
     private MyGoogleLocationCallback callback;
+    private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
     private PopupMenu popup;
 
@@ -83,7 +86,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onStop() {
         super.onStop();
-        // Check the location framework in use
+        // Check the location framework in use and disable
         disableLocation();
     }
 
@@ -91,7 +94,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fabMapType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popupMenu();
+                popup.show();
             }
         });
 
@@ -115,38 +118,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setInterval(3000);
         request.setFastestInterval(2000);
-
-        checkLocationPermissions(Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     /**
      * Checks that permissions are granted for the selected location framework.
-     *
-     * @param permission Permission required to request updates from the selected location provider.
      */
-    private void checkLocationPermissions( String permission) {
-        if (isLocationPermissionGranted(permission)) {
+    private void checkLocationPermissions() {
+        if (isLocationPermissionGranted(true)) {
             locationProviderClient.requestLocationUpdates(request, callback, null);
         }
     }
 
     /**
-     * Checks that permissions are granted for the selected location framework.
-     *
-     * @param permission  Permission required to request updates from the selected location provider.
+     * Checks that permissions are granted for the selected location framework
      */
-    private boolean isLocationPermissionGranted(String permission) {
+    private boolean isLocationPermissionGranted(boolean request) {
 
         // Determine whether the user has granted that particular permission
-        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), permission)) {
+        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
             return true;
         }
         // If not, display an activity to request that permission
-        else {
+        else if (request) {
             requestPermissions((new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION}), LocationRequest.PRIORITY_HIGH_ACCURACY);
-            return false;
         }
+        return false;
     }
 
     /**
@@ -171,19 +168,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
      * Tries to disable location updates for the selected location framework.
      */
     private void disableLocation() {
-        /*
-         * If required permissions have been granted then
-         * stop receiving location updates from the selected framework.
-         */
-        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+        if (isLocationPermissionGranted(false)) {
             locationProviderClient.removeLocationUpdates(callback);
-        }
-        // If not, display an activity to request that permission
-        else {
-            ActivityCompat.requestPermissions(
-                    getActivity(),
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
     }
 
@@ -192,7 +178,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         this.map = googleMap;
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
+        /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
+        *  en vez de meterlo directmanete en numero fijo*/
         map.setPadding(0,170,0,0);
+        map.setLocationSource(new LocationSource() {
+            @Override
+            public void activate(OnLocationChangedListener onLocationChangedListener) {
+                locationChangedListener = onLocationChangedListener;
+            }
+
+            @Override
+            public void deactivate() {
+                locationChangedListener = null;
+            }
+        });
     }
 
     /**
@@ -201,7 +200,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
      */
     private void updateUI(Location location) {
         lastLocation = location;
-        map.setMyLocationEnabled(true);
+        if (locationChangedListener != null) {
+            locationChangedListener.onLocationChanged(location);
+        }
     }
 
     private void changeMapType(int mapType) {
@@ -236,11 +237,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 return false;
             }
         });
-    }
-
-    private void popupMenu() {
-        //show the popup menu
-        popup.show();
     }
 
     private void searchViewListener() {
@@ -323,8 +319,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void onLocationAvailability(LocationAvailability locationAvailability) {
             super.onLocationAvailability(locationAvailability);
-            showSnackBar(rootView,"cambio gps");
-            locationAvailability.isLocationAvailable();
+            if (locationAvailability.isLocationAvailable()){
+                checkLocationPermissions();
+                map.setMyLocationEnabled(true);
+            } else {
+                disableLocation();
+                map.setMyLocationEnabled(false);
+            }
         }
+
     }
 }
