@@ -118,6 +118,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setInterval(3000);
         request.setFastestInterval(2000);
+
+        checkLocationPermissions();
     }
 
     /**
@@ -319,13 +321,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void onLocationAvailability(LocationAvailability locationAvailability) {
             super.onLocationAvailability(locationAvailability);
-            if (locationAvailability.isLocationAvailable()){
-                checkLocationPermissions();
-                map.setMyLocationEnabled(true);
-            } else {
-                disableLocation();
-                map.setMyLocationEnabled(false);
-            }
+            map.setMyLocationEnabled(locationAvailability.isLocationAvailable());
         }
 
     }
