@@ -49,7 +49,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private View rootView;
     private GoogleMap map;
     private SearchView searchView;
-    private FloatingActionButton fabMapType, fabDirections;
+    private FloatingActionButton fabMapType, fabDirections, fabLocation;
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
@@ -71,6 +71,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         searchView = rootView.findViewById(R.id.searchBar);
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
+        fabLocation = rootView.findViewById(R.id.fabLocation);
+        fabLocation.hide();
 
         initMapAndLocation();
         searchViewListener();
@@ -102,6 +104,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onClick(View v) {
                 showSnackBar(rootView,"pulsado como llegar");
+            }
+        });
+
+        fabLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lastLocation != null) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()),15));
+                }
             }
         });
     }
@@ -183,6 +194,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
         *  en vez de meterlo directmanete en numero fijo*/
         map.setPadding(0,170,0,0);
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setIndoorLevelPickerEnabled(false);
         map.setLocationSource(new LocationSource() {
             @Override
             public void activate(OnLocationChangedListener onLocationChangedListener) {
@@ -322,6 +335,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         public void onLocationAvailability(LocationAvailability locationAvailability) {
             super.onLocationAvailability(locationAvailability);
             map.setMyLocationEnabled(locationAvailability.isLocationAvailable());
+            if (locationAvailability.isLocationAvailable()){
+                fabLocation.show();
+            } else {
+                fabLocation.hide();
+            }
         }
 
     }

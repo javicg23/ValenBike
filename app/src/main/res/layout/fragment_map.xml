@@ -7,15 +7,16 @@
     tools:context=".fragments.MapFragment">
 
     <fragment
-        xmlns:map="http://schemas.android.com/apk/res-auto"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        map:uiTiltGestures="false"
-        map:cameraZoom="12"
-        map:cameraTargetLat="39.469684"
-        map:cameraTargetLng="-0.376326" />
+        app:cameraTargetLat="39.469684"
+        app:cameraTargetLng="-0.376326"
+        app:cameraZoom="12"
+        app:uiTiltGestures="false"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <SearchView
         android:id="@+id/searchBar"
@@ -36,11 +37,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:layout_marginEnd="23dp"
-        android:layout_marginBottom="16dp"
         android:src="@drawable/ic_layers_24px"
+        android:layout_margin="16dp"
         app:backgroundTint="@android:color/white"
         app:fabSize="mini"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchBar" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabLocation"
+        style="@style/Widget.Design.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_my_location_black_24dp"
+        app:backgroundTint="@android:color/white"
+        app:fabSize="normal"
         app:layout_constraintBottom_toTopOf="@+id/fabDirections"
         app:layout_constraintEnd_toEndOf="parent" />
 
