@@ -1,23 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card-view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#E4E3E3"
     tools:context=".fragments.HistoryFragment">
 
     <TextView
-        android:id="@+id/text_notifications"
-        android:layout_width="match_parent"
+        android:id="@+id/totalTime"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:text="History Fragment"
+        android:layout_marginTop="24dp"
+        android:text="Tiempo Total"
         android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        style="@style/TextAppearance.AppCompat.Title"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toStartOf="@+id/totalMoney"
+        card-view:layout_constraintHorizontal_bias="0.0"
+        card-view:layout_constraintStart_toStartOf="parent"
+        card-view:layout_constraintTop_toTopOf="parent"
+        card-view:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/totalMoney"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Dinero Total"
+        android:textAlignment="center"
+        style="@style/TextAppearance.AppCompat.Title"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toEndOf="parent"
+        card-view:layout_constraintHorizontal_bias="0.5"
+        card-view:layout_constraintStart_toEndOf="@+id/totalTime"
+        card-view:layout_constraintTop_toTopOf="parent"
+        card-view:layout_constraintVertical_bias="0.0" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerHistory"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toEndOf="parent"
+        card-view:layout_constraintStart_toStartOf="parent"
+        card-view:layout_constraintTop_toBottomOf="@+id/totalTime"
+        card-view:layout_constraintVertical_bias="0.0"
+        card-view:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+
