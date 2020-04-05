@@ -3,55 +3,107 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card-view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E4E3E3"
+    android:orientation="vertical"
     tools:context=".fragments.HistoryFragment">
 
-    <TextView
-        android:id="@+id/totalTime"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/ConstraitLayoutHeader"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Tiempo Total"
-        android:textAlignment="center"
-        style="@style/TextAppearance.AppCompat.Title"
         card-view:layout_constraintBottom_toBottomOf="parent"
-        card-view:layout_constraintEnd_toStartOf="@+id/totalMoney"
+        card-view:layout_constraintEnd_toEndOf="parent"
         card-view:layout_constraintHorizontal_bias="0.0"
         card-view:layout_constraintStart_toStartOf="parent"
         card-view:layout_constraintTop_toTopOf="parent"
-        card-view:layout_constraintVertical_bias="0.0" />
+        card-view:layout_constraintVertical_bias="0.0">
 
-    <TextView
-        android:id="@+id/totalMoney"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Dinero Total"
-        android:textAlignment="center"
-        style="@style/TextAppearance.AppCompat.Title"
-        card-view:layout_constraintBottom_toBottomOf="parent"
-        card-view:layout_constraintEnd_toEndOf="parent"
-        card-view:layout_constraintHorizontal_bias="0.5"
-        card-view:layout_constraintStart_toEndOf="@+id/totalTime"
-        card-view:layout_constraintTop_toTopOf="parent"
-        card-view:layout_constraintVertical_bias="0.0" />
+        <TextView
+            android:id="@+id/totalTime"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Tiempo"
+            android:textAlignment="center"
+            card-view:layout_constraintBottom_toBottomOf="parent"
+            card-view:layout_constraintEnd_toStartOf="@+id/im_userTime"
+            card-view:layout_constraintHorizontal_bias="1.0"
+            card-view:layout_constraintStart_toStartOf="parent"
+            card-view:layout_constraintTop_toTopOf="parent" />
 
+        <ImageView
+            android:id="@+id/im_userTime"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_time"
+            card-view:layout_constraintBottom_toBottomOf="parent"
+            card-view:layout_constraintEnd_toEndOf="parent"
+            card-view:layout_constraintHorizontal_bias="0.4"
+            card-view:layout_constraintStart_toStartOf="parent"
+            card-view:layout_constraintTop_toTopOf="parent"
+            card-view:layout_constraintVertical_bias="0.0" />
+
+        <ImageView
+            android:id="@+id/im_totalMoney"
+            android:layout_width="40dp"
+            android:layout_height="45dp"
+            android:src="@drawable/ic_money"
+            card-view:layout_constraintBottom_toBottomOf="parent"
+            card-view:layout_constraintEnd_toEndOf="parent"
+            card-view:layout_constraintHorizontal_bias="0.6"
+            card-view:layout_constraintStart_toStartOf="parent"
+            card-view:layout_constraintTop_toTopOf="parent"
+            card-view:layout_constraintVertical_bias="0.0" />
+
+        <TextView
+            android:id="@+id/totalMoney"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Dinero"
+            android:textAlignment="center"
+            card-view:layout_constraintBottom_toBottomOf="parent"
+            card-view:layout_constraintEnd_toEndOf="parent"
+            card-view:layout_constraintHorizontal_bias="0.0"
+            card-view:layout_constraintStart_toEndOf="@+id/im_totalMoney"
+            card-view:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerHistory"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="48dp"
         android:padding="8dp"
         android:scrollbars="vertical"
+        card-view:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        card-view:layout_constraintBottom_toBottomOf="parent"
+        card-view:layout_constraintEnd_toEndOf="parent"
+        card-view:layout_constraintHorizontal_bias="0.0"
+        card-view:layout_constraintStart_toStartOf="parent"
+        card-view:layout_constraintTop_toBottomOf="@+id/ConstraitLayoutHeader">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:drawable/ic_delete"
+        android:backgroundTint="#000000"
+        android:visibility="visible"
         card-view:layout_constraintBottom_toBottomOf="parent"
         card-view:layout_constraintEnd_toEndOf="parent"
         card-view:layout_constraintStart_toStartOf="parent"
-        card-view:layout_constraintTop_toBottomOf="@+id/totalTime"
-        card-view:layout_constraintVertical_bias="0.0"
-        card-view:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        card-view:layout_constraintTop_toBottomOf="@+id/recyclerHistory"
+        card-view:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
