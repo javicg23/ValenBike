@@ -72,7 +72,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
-        fabLocation.hide();
 
         initMapAndLocation();
         searchViewListener();
@@ -103,15 +102,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSnackBar(rootView,"pulsado como llegar");
+                showSnackBar(rootView,"lon: " + markerSearch.getPosition().longitude + " lat: " + markerSearch.getPosition().latitude);
             }
         });
 
+        fabLocation.hide();
         fabLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (lastLocation != null) {
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()),15));
+                    if (LIMIT_MAP.southwest.longitude < lastLocation.getLongitude() && lastLocation.getLongitude() < LIMIT_MAP.northeast.longitude &&
+                            LIMIT_MAP.southwest.latitude < lastLocation.getLatitude() && lastLocation.getLatitude() < LIMIT_MAP.northeast.latitude) {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()),17));
+                    } else {
+                        showSnackBar(rootView, getString(R.string.map_location_out_bounds));
+                    }
                 }
             }
         });
@@ -196,6 +201,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         map.setPadding(0,170,0,0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
+        map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                setMarkerSearch(latLng);
+            }
+        });
         map.setLocationSource(new LocationSource() {
             @Override
             public void activate(OnLocationChangedListener onLocationChangedListener) {
@@ -209,6 +220,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    private void setMarkerSearch(LatLng latLng) {
+        if (markerSearch != null) {
+            markerSearch.remove();
+        }
+        markerSearch = map.addMarker(new MarkerOptions().position(latLng));
+    }
     /**
      * Updates the user interface to display the new latitude and longitude.
      * It will also start an asynchronous task to translate those coordinates into a human readable address.
@@ -297,10 +314,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (LIMIT_MAP.southwest.longitude < latLng.longitude && latLng.longitude < LIMIT_MAP.northeast.longitude &&
                             LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude) {
 
-                        if (markerSearch != null) {
-                            markerSearch.remove();
-                        }
-                        markerSearch = map.addMarker(new MarkerOptions().position(latLng).draggable(true));
+                        setMarkerSearch(latLng);
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
                         insideArea = true;
                     }
@@ -314,7 +328,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
 
             if (!insideArea) {
-                showSnackBar(rootView,getString(R.string.map_location_out_bounds));
+                showSnackBar(rootView,getString(R.string.map_search_out_bounds));
             }
         }
         return false;
