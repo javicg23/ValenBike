@@ -62,4 +62,5 @@
     <string name="fav_station_fragment">Favorita</string>
     <string name="notifybike_station_fragment">Notificar si hay bicicleta disponible</string>
     <string name="notifyfree_station_fragment">Notificar si hay hueco disponible</string>
+    <string name="jcdecaux_api">826d3b8a1da38c94e235e378d86abdb4802e18f5</string>
 </resources>
