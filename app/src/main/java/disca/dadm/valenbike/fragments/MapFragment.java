@@ -28,20 +28,25 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.maps.android.clustering.ClusterManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.models.OnTaskCompleted;
+import disca.dadm.valenbike.models.ClusterStation;
+import disca.dadm.valenbike.tasks.OnTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
+import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskCompleted {
 
@@ -200,6 +205,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         map.setPadding(0,170,0,0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
+        map.getUiSettings().setMapToolbarEnabled(false);
         map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -227,7 +233,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         if (markerSearch != null) {
             markerSearch.remove();
         }
-        markerSearch = map.addMarker(new MarkerOptions().position(latLng));
+        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
     }
     /**
      * Updates the user interface to display the new latitude and longitude.
@@ -339,12 +345,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
     @Override
     public void onTaskCompleted(List<Station> stations) {
+        ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
+        clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
+        map.setOnCameraIdleListener(clusterManager);
+        List<ClusterStation> items = new ArrayList<>();
         for (int i = 0; i < stations.size(); i++) {
             Station station = stations.get(i);
-            map.addMarker(new MarkerOptions()
-                    .position(new LatLng(station.getPosition().getLat(), station.getPosition().getLng())));
-
+            long number = station.getNumber();
+            LatLng latLng = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
+            boolean freeBikes = station.getAvailableBikes() > 0;
+            boolean active = station.getStatus().equals("OPEN");
+            ClusterStation clusterStation = new ClusterStation(number, latLng, freeBikes, active);
+            items.add(clusterStation);
         }
+        clusterManager.addItems(items);
+        clusterManager.cluster();
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {
