@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey;
 
 
 @Entity(tableName = "station")
-public class Station {
+public class Stations {
 
     @PrimaryKey
     @NonNull
@@ -27,7 +27,7 @@ public class Station {
 
     private boolean notify;
 
-    public Station(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
+    public Stations(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
         this.name = name;
         this.address = address;
         this.numFreeBikes = numBikes;
@@ -36,7 +36,7 @@ public class Station {
         this.notify = notify;
     }
 
-    public Station() {}
+    public Stations() {}
 
     public String getName() { return this.name; }
     public void setName(String name) { this.name = name; }

@@ -1,19 +1,17 @@
 package disca.dadm.valenbike.database;
 
 import androidx.room.ColumnInfo;
-import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
-import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
 @Entity(tableName = "journey",
-        foreignKeys = {@ForeignKey(entity = Station.class,
+        foreignKeys = {@ForeignKey(entity = Stations.class,
                                    parentColumns = "name",
                                    childColumns = "origin_name"),
-                       @ForeignKey(entity = Station.class,
+                       @ForeignKey(entity = Stations.class,
                                    parentColumns = "name",
                                    childColumns = "destination_name")
         })

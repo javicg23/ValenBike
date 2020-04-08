@@ -1,7 +1,6 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
-import android.app.DownloadManager;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -12,12 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
-import android.widget.RadioGroup;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -43,8 +39,11 @@ import java.io.IOException;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.models.OnTaskCompleted;
+import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskCompleted {
 
     private View rootView;
     private GoogleMap map;
@@ -102,7 +101,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSnackBar(rootView,"lon: " + markerSearch.getPosition().longitude + " lat: " + markerSearch.getPosition().latitude);
+                showSnackBar(rootView,"pulsado como llegar");
             }
         });
 
@@ -218,6 +217,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 locationChangedListener = null;
             }
         });
+
+        // request for stations of valenbisi
+        PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(this);
+        petitionAsyncTask.execute(0);
     }
 
     private void setMarkerSearch(LatLng latLng) {
@@ -334,6 +337,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return false;
     }
 
+    @Override
+    public void onTaskCompleted(List<Station> stations) {
+        for (int i = 0; i < stations.size(); i++) {
+            Station station = stations.get(i);
+            map.addMarker(new MarkerOptions()
+                    .position(new LatLng(station.getPosition().getLat(), station.getPosition().getLng())));
+
+        }
+    }
+
     private class MyGoogleLocationCallback extends LocationCallback {
 
         /**
@@ -355,6 +368,5 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 fabLocation.hide();
             }
         }
-
     }
 }
