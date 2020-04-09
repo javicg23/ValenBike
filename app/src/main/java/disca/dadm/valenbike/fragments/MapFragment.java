@@ -344,7 +344,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     }
 
     @Override
-    public void onTaskCompleted(List<Station> stations) {
+    public void receivedAllStations(List<Station> stations) {
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
         map.setOnCameraIdleListener(clusterManager);
@@ -360,6 +360,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         }
         clusterManager.addItems(items);
         clusterManager.cluster();
+    }
+
+    @Override
+    public void receivedStation(Station station) {
+
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {

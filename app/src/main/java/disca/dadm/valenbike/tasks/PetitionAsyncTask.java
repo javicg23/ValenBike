@@ -28,7 +28,11 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
     @Override
     protected void onPostExecute(List<Station> stations) {
         super.onPostExecute(stations);
-        listener.onTaskCompleted(stations);
+        if (stations.size() > 1) {
+            listener.receivedAllStations(stations);
+        } else {
+            listener.receivedStation(stations.get(0));
+        }
     }
 
     @Override

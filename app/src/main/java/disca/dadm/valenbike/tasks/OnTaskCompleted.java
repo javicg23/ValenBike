@@ -5,5 +5,6 @@ import java.util.List;
 import disca.dadm.valenbike.models.Station;
 
 public interface OnTaskCompleted {
-    void onTaskCompleted(List<Station> stations);
+    void receivedAllStations(List<Station> stations);
+    void receivedStation(Station station);
 }
