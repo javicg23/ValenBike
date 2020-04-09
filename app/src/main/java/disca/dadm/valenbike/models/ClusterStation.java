@@ -25,16 +25,12 @@ public class ClusterStation implements ClusterItem {
 
     @Override
     public String getTitle() {
-        return null;
+        return Long.toString(number);
     }
 
     @Override
     public String getSnippet() {
         return "";
-    }
-
-    public long getNumber() {
-        return number;
     }
 
     public boolean isFreeBikes() {

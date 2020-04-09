@@ -6,12 +6,14 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 import android.widget.SearchView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -33,6 +35,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.maps.android.clustering.ClusterManager;
@@ -212,6 +215,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 setMarkerSearch(latLng);
             }
         });
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.getTitle() == null){
+                    LatLng position = marker.getPosition();
+                    float zoom = map.getCameraPosition().zoom + 2;
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+                } else if (marker.getTitle().equals("SEARCH")){
+                    showSnackBar(rootView,"pulsado search");
+                } else {
+                    View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+                    BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
+                    TextView tv = dialogView.findViewById(R.id.textViewSheet);
+                    tv.setText(marker.getTitle());
+                    dialog.setContentView(dialogView);
+                    dialog.show();
+                }
+                return true;
+            }
+        });
         map.setLocationSource(new LocationSource() {
             @Override
             public void activate(OnLocationChangedListener onLocationChangedListener) {
@@ -233,7 +256,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         if (markerSearch != null) {
             markerSearch.remove();
         }
-        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title("SEARCH"));
     }
     /**
      * Updates the user interface to display the new latitude and longitude.
