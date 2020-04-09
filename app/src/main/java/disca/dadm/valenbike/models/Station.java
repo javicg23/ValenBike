@@ -1,20 +1,20 @@
 package disca.dadm.valenbike.models;
 
 public class Station {
-    private long number;
+    private int number;
     private String contractName;
     private String name;
     private String address;
     private Position position;
     private boolean banking;
     private boolean bonus;
-    private long bikeStands;
-    private long availableBikeStands;
-    private long availableBikes;
+    private int bikeStands;
+    private int availableBikeStands;
+    private int availableBikes;
     private String status;
     private long lastUpdate;
 
-    public Station(long number, String contractName, String name, String address, Position position, boolean banking, boolean bonus, long bikeStands, long availableBikeStands, long availableBikes, String status, long lastUpdate) {
+    public Station(int number, String contractName, String name, String address, Position position, boolean banking, boolean bonus, int bikeStands, int availableBikeStands, int availableBikes, String status, long lastUpdate) {
         this.number = number;
         this.contractName = contractName;
         this.name = name;
@@ -29,11 +29,11 @@ public class Station {
         this.lastUpdate = lastUpdate;
     }
 
-    public long getNumber() {
+    public int getNumber() {
         return number;
     }
 
-    public void setNumber(long value) {
+    public void setNumber(int value) {
         this.number = value;
     }
 
@@ -85,27 +85,27 @@ public class Station {
         this.bonus = value;
     }
 
-    public long getBikeStands() {
+    public int getBikeStands() {
         return bikeStands;
     }
 
-    public void setBikeStands(long value) {
+    public void setBikeStands(int value) {
         this.bikeStands = value;
     }
 
-    public long getAvailableBikeStands() {
+    public int getAvailableBikeStands() {
         return availableBikeStands;
     }
 
-    public void setAvailableBikeStands(long value) {
+    public void setAvailableBikeStands(int value) {
         this.availableBikeStands = value;
     }
 
-    public long getAvailableBikes() {
+    public int getAvailableBikes() {
         return availableBikes;
     }
 
-    public void setAvailableBikes(long value) {
+    public void setAvailableBikes(int value) {
         this.availableBikes = value;
     }
 

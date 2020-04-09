@@ -5,13 +5,13 @@ import com.google.maps.android.clustering.ClusterItem;
 
 public class ClusterStation implements ClusterItem {
 
-    private long number;
+    private int number;
     private LatLng position;
     private boolean freeBikes;
     private boolean active;
 
 
-    public ClusterStation(long number, LatLng position, boolean freeBikes, boolean active) {
+    public ClusterStation(int number, LatLng position, boolean freeBikes, boolean active) {
         this.number = number;
         this.position = position;
         this.freeBikes = freeBikes;
@@ -25,7 +25,7 @@ public class ClusterStation implements ClusterItem {
 
     @Override
     public String getTitle() {
-        return Long.toString(number);
+        return Integer.toString(number);
     }
 
     @Override

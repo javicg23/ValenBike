@@ -1,11 +1,13 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -51,15 +53,20 @@ import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
+import static disca.dadm.valenbike.utils.Tools.showSnackBar;
+
 public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskCompleted {
+
+    private final float CAMERA_ZOOM_STREET = 17;
+    private final double POSITION_MARKER_SHEET = - 0.001;
+    private LatLngBounds LIMIT_MAP = new LatLngBounds(
+            new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
 
     private View rootView;
     private GoogleMap map;
     private SearchView searchView;
     private FloatingActionButton fabMapType, fabDirections, fabLocation;
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
-    private LatLngBounds LIMIT_MAP = new LatLngBounds(
-            new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
     private Marker markerSearch;
     private Location lastLocation;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
@@ -68,6 +75,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
     private PopupMenu popup;
+    private ProgressDialog loadingDialog;
+    private boolean requestInProgress = false;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,8 +94,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         searchViewListener();
         fabsListeners();
         createPopupMenu();
+        createLoadingDialog();
 
         return rootView;
+    }
+
+    private void createLoadingDialog() {
+        loadingDialog = new ProgressDialog(getActivity());
+        loadingDialog.setMessage(getString(R.string.dialog_loading_information));
+        loadingDialog.setCancelable(false);
+        loadingDialog.setInverseBackgroundForced(false);
     }
 
     /**
@@ -120,7 +138,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 if (lastLocation != null) {
                     if (LIMIT_MAP.southwest.longitude < lastLocation.getLongitude() && lastLocation.getLongitude() < LIMIT_MAP.northeast.longitude &&
                             LIMIT_MAP.southwest.latitude < lastLocation.getLatitude() && lastLocation.getLatitude() < LIMIT_MAP.northeast.latitude) {
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()),17));
+                        LatLng position = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+                        moveCamera(position, CAMERA_ZOOM_STREET);
                     } else {
                         showSnackBar(rootView, getString(R.string.map_location_out_bounds));
                     }
@@ -201,6 +220,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.map = googleMap;
+
+        // request for stations of valenbisi
+        requestStations(0);
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
@@ -221,16 +243,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 if (marker.getTitle() == null){
                     LatLng position = marker.getPosition();
                     float zoom = map.getCameraPosition().zoom + 2;
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+                    moveCamera(position, zoom);
                 } else if (marker.getTitle().equals("SEARCH")){
                     showSnackBar(rootView,"pulsado search");
-                } else {
-                    View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
-                    BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
-                    TextView tv = dialogView.findViewById(R.id.textViewSheet);
-                    tv.setText(marker.getTitle());
-                    dialog.setContentView(dialogView);
-                    dialog.show();
+                } else if (!requestInProgress){
+                    requestStations(Integer.parseInt(marker.getTitle()));
                 }
                 return true;
             }
@@ -247,9 +264,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             }
         });
 
-        // request for stations of valenbisi
-        PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(this);
-        petitionAsyncTask.execute(0);
+    }
+
+    private void moveCamera(LatLng position, float zoom) {
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
     }
 
     private void setMarkerSearch(LatLng latLng) {
@@ -316,12 +334,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         });
     }
 
-    private void showSnackBar(View view, String msg) {
-        Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
-        snackbar.setAnchorView(R.id.bottomView);
-        snackbar.show();
-    }
-
     private boolean querySubmit(String query) {
         String location = query;
         location = location.toLowerCase();
@@ -347,7 +359,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                             LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude) {
 
                         setMarkerSearch(latLng);
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+                        moveCamera(latLng, CAMERA_ZOOM_STREET);
                         insideArea = true;
                     }
                 }
@@ -366,6 +378,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         return false;
     }
 
+    private void requestStations(int number) {
+        requestInProgress = true;
+        loadingDialog.show();
+        PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(this);
+        petitionAsyncTask.execute(number);
+    }
+
+    private void requestDone() {
+        loadingDialog.hide();
+        requestInProgress = false;
+    }
+
     @Override
     public void receivedAllStations(List<Station> stations) {
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
@@ -374,7 +398,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         List<ClusterStation> items = new ArrayList<>();
         for (int i = 0; i < stations.size(); i++) {
             Station station = stations.get(i);
-            long number = station.getNumber();
+            int number = station.getNumber();
             LatLng latLng = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
             boolean freeBikes = station.getAvailableBikes() > 0;
             boolean active = station.getStatus().equals("OPEN");
@@ -383,11 +407,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         }
         clusterManager.addItems(items);
         clusterManager.cluster();
+        requestDone();
     }
 
     @Override
     public void receivedStation(Station station) {
-
+        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+        BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
+        TextView tv = dialogView.findViewById(R.id.textViewSheet);
+        tv.setText(station.getAddress());
+        dialog.setContentView(dialogView);
+        LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
+        moveCamera(position, CAMERA_ZOOM_STREET);
+        dialog.show();
+        requestDone();
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {
