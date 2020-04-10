@@ -12,25 +12,21 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.adapters.StationsAdapter;
-import disca.dadm.valenbike.database.ValenbikeDatabase;
-import disca.dadm.valenbike.models.StationGUI;
-import disca.dadm.valenbike.tasks.StationsAsyncTask;
+//import disca.dadm.valenbike.adapters.StationsAdapter;
+//import disca.dadm.valenbike.models.StationGUI;
+//import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 public class StationsFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private List<StationGUI> stationsList;
+//    private List<StationGUI> stationsList;
 
-    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
+//    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
 
 
     @Override
@@ -112,11 +108,11 @@ public class StationsFragment extends Fragment {
         return false;
     }
 
-    private void startNewAsyncTask() {
-        StationsAsyncTask task = new StationsAsyncTask(this);
-        this.asyncTaskWeakRef = new WeakReference<>(task);
-        task.execute();
-    }
+//    private void startNewAsyncTask() {
+//        StationsAsyncTask task = new StationsAsyncTask(this);
+//        this.asyncTaskWeakRef = new WeakReference<>(task);
+//        task.execute();
+//    }
 
     public void initData(/*List<disca.dadm.valenbike.database.Station> dbStations*/) {
 
@@ -134,14 +130,14 @@ public class StationsFragment extends Fragment {
             }
         } else {*/
             // DEBUG without API data.
-            stationsList = disca.dadm.valenbike.test.getStationList();
+            //stationsList = disca.dadm.valenbike.test.getStationList();
         /*}
 
         initRecyclerView();*/
     }
 
     private void initRecyclerView() {
-        StationsAdapter stationsAdapter = new StationsAdapter(stationsList);
-        recyclerView.setAdapter(stationsAdapter);
+        //StationsAdapter stationsAdapter = new StationsAdapter(stationsList);
+        //recyclerView.setAdapter(stationsAdapter);
     }
 }

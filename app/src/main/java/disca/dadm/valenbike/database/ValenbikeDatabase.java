@@ -5,8 +5,11 @@
 //import androidx.room.Database;
 //import androidx.room.Room;
 //import androidx.room.RoomDatabase;
+//import androidx.room.TypeConverter;
+//import androidx.room.TypeConverters;
 //
-//@Database(entities = {Viaje.class, Estacion.class}, version = 1)
+//@Database(entities = {Journey.class, Stations.class}, version = 1, exportSchema = false)
+//@TypeConverters({Converters.class})
 //public abstract class ValenbikeDatabase extends RoomDatabase {
 //
 //    //Patron Singleton
@@ -22,6 +25,6 @@
 //        return valenbikeDatabase;
 //    }
 //
-//    public abstract ViajeDao viajeDao();
-//    public abstract EstacionDao estacionDao();
+//    public abstract JourneyDao journeyDao();
+//    public abstract StationDao stationDao();
 //}
