@@ -1,5 +1,7 @@
 package disca.dadm.valenbike.tasks;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -15,19 +17,36 @@ import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.activities.MainActivity;
+import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.models.Station;
 
 public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
 
     private OnTaskCompleted listener;
+    private Context context;
+    private ProgressDialog progressDialog;
 
-    public PetitionAsyncTask(OnTaskCompleted listener) {
+    public PetitionAsyncTask(Context context, OnTaskCompleted listener) {
         this.listener = listener;
+        this.context = context;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage(context.getString(R.string.dialog_loading_information));
+        progressDialog.show();
     }
 
     @Override
     protected void onPostExecute(List<Station> stations) {
         super.onPostExecute(stations);
+        progressDialog.dismiss();
+        progressDialog = null;
+
         if (stations.size() > 1) {
             listener.receivedAllStations(stations);
         } else {

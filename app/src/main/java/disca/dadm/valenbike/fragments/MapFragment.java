@@ -62,12 +62,14 @@ import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
+import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskCompleted {
 
     private final float CAMERA_ZOOM_STREET = 17;
     private final double POSITION_MARKER_SHEET = - 0.001;
+    // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
 
@@ -75,7 +77,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     private GoogleMap map;
     private SearchView searchView;
     private FloatingActionButton fabMapType, fabDirections, fabLocation;
-    // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private Marker markerSearch;
     private Location lastLocation;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
@@ -84,7 +85,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
     private PopupMenu popup;
-    private ProgressDialog loadingDialog;
+    //private ProgressDialog loadingDialog;
     private boolean requestInProgress = false;
 
 
@@ -99,21 +100,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
 
-        initMapAndLocation();
         searchViewListener();
         fabsListeners();
         createPopupMenu();
-        createLoadingDialog();
+        initMapAndLocation();
 
         return rootView;
     }
 
-    private void createLoadingDialog() {
-        loadingDialog = new ProgressDialog(getActivity());
-        loadingDialog.setMessage(getString(R.string.dialog_loading_information));
-        loadingDialog.setCancelable(false);
-        loadingDialog.setInverseBackgroundForced(false);
-    }
 
     /**
      * Disables the location updates (if enabled).
@@ -231,7 +225,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         this.map = googleMap;
 
         // request for stations of valenbisi
-        //requestStations(0);
+        requestStations(0);
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
@@ -388,14 +382,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     }
 
     private void requestStations(int number) {
-        requestInProgress = true;
-        loadingDialog.show();
-        PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(this);
-        petitionAsyncTask.execute(number);
+        if (isNetworkConnected(getContext())){
+            requestInProgress = true;
+            PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
+            petitionAsyncTask.execute(number);
+        }
     }
 
     private void requestDone() {
-        loadingDialog.hide();
         requestInProgress = false;
     }
 
