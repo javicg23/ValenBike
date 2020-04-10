@@ -22,13 +22,13 @@ import java.util.Objects;
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.database.ValenbikeDatabase;
-import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 public class StationsFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private List<Station> stationsList;
+    private List<StationGUI> stationsList;
 
     private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
 

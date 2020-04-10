@@ -1,11 +1,11 @@
 package disca.dadm.valenbike.models;
 
-public class Station extends disca.dadm.valenbike.database.Station{
+public class StationGUI extends disca.dadm.valenbike.database.Station{
     private String title;
     private boolean expanded;
     private boolean arrowDown;
 
-    public Station(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
+    public StationGUI(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
         super(name, address, numBikes, numGaps, favourite, notify);
         this.title = name;
         this.expanded = false;

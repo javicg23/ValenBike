@@ -3,21 +3,21 @@ package disca.dadm.valenbike;
 import java.util.ArrayList;
 import java.util.List;
 
-import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
 
 public class test {
 
-    static List<Station> stations;
+    static List<StationGUI> stations;
 
-    public static List<Station> getStationList() {
+    public static List<StationGUI> getStationList() {
         stations = new ArrayList<>();
-        Station neew = createStation("Porta de la Mar", "Calle Colón", 15, 25, true, false);
+        StationGUI neew = createStation("Porta de la Mar", "Calle Colón", 15, 25, true, false);
         stations.add(neew);
 
         return stations;
     }
 
-    private static Station createStation(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
-        return new Station(name,address,numBikes,numGaps,favourite,notify);
+    private static StationGUI createStation(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
+        return new StationGUI(name,address,numBikes,numGaps,favourite,notify);
     }
 }

@@ -17,14 +17,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
 
 public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.StationsViewHolder> {
 
     private static final String TAG = "StationsAdapter";
-    private List<Station> stationsList;
+    private List<StationGUI> stationsList;
 
-    public StationsAdapter(List<Station> stationsList) {
+    public StationsAdapter(List<StationGUI> stationsList) {
         this.stationsList = stationsList;
     }
 
@@ -37,7 +37,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
     @Override
     public void onBindViewHolder(@NonNull StationsAdapter.StationsViewHolder holder, int position) {
-        Station station = stationsList.get(position);
+        StationGUI station = stationsList.get(position);
 
         holder.tvStationTitle.setText(station.getTitle());
         boolean isExpanded = stationsList.get(position).isExpanded();
@@ -105,7 +105,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             });
         }
         private void changeExpandibleLayout() {
-            Station station = stationsList.get(getAdapterPosition());
+            StationGUI station = stationsList.get(getAdapterPosition());
             station.setExpanded(!station.isExpanded());
             station.setArrowDown(!station.isArrowDown());
             notifyItemChanged(getAdapterPosition());
