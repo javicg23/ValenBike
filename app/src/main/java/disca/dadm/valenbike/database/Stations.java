@@ -12,20 +12,20 @@ public class Stations {
 
     @PrimaryKey
     @NonNull
-    private String name;
+    protected String name;
 
-    private String address;
+    protected String address;
 
     @ColumnInfo(name = "num_free_bikes")
-    private int numFreeBikes;
+    protected int numFreeBikes;
 
     @ColumnInfo(name = "num_free_gaps")
-    private int numFreeGaps;
+    protected int numFreeGaps;
 
     @ColumnInfo(name = "is_favourite")
-    private boolean isFavourite;
+    protected boolean isFavourite;
 
-    private boolean notify;
+    protected boolean notify;
 
     public Stations(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
         this.name = name;

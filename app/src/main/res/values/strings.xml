@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">ValenBike</string>
+    <string name="maps_api_key">AIzaSyD19z-68T6MRVwWgr1y19yzLr0P1FkF8mg</string>
     <string name="bottom_menu_map">Mapa</string>
     <string name="bottom_menu_stations">Estaciones</string>
     <string name="bottom_menu_history">Historial</string>
@@ -71,4 +72,8 @@
     <string name="sheet_station_directions">Como llegar</string>
     <string name="sheet_station_closed">Cerrada temporalmente</string>
     <string name="jcdecaux_api">826d3b8a1da38c94e235e378d86abdb4802e18f5</string>
+    <string name="filter_menu_station">Filtrar</string>
+    <string name="fav_filter_menu_station">Estaciones favoritas</string>
+    <string name="notify_filter_menu_station">Estaciones con avisos</string>
+    <string name="selection_filter_menu_station">Filtrar por…</string>
 </resources>
