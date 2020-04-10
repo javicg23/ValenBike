@@ -11,105 +11,181 @@
     app:behavior_peekHeight="90dp"
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        >
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="35dp"
+            android:orientation="horizontal"
+            android:background="@drawable/shape_number_station"
+            >
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_bike_station_number"
+                android:layout_marginRight="7dp"/>
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+            <TextView
+                android:id="@+id/sheetNumberStation"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text=""
+                android:textSize="20sp"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="5dp"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+        <CheckBox
+            android:id="@+id/sheetReminder"
+            android:checked="false"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:button="@null"
+            android:background="@drawable/ic_notifications_none_golden_24dp"/>
+
+        <CheckBox
+            android:id="@+id/sheetFavourite"
+            android:checked="false"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:button="@null"
+            android:background="@drawable/ic_favorite_border_magenta_24dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:srcCompat="@drawable/ic_place_light_grey_24dp"
+            android:layout_gravity="center"
+            />
+
+        <TextView
+            android:id="@+id/sheetAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_directions_bike_primary_24dp"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sheet_station_bikes"
+            android:layout_marginEnd="10dp"/>
+
+        <TextView
+            android:id="@+id/sheetAvailableBikes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_local_parking_primary_24dp"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sheet_station_stands"
+            android:layout_marginEnd="10dp"/>
+
+        <TextView
+            android:id="@+id/sheetAvailableStands"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginEnd="16dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sheet_station_last_update"
+            android:layout_marginEnd="7dp"/>
+        <TextView
+            android:id="@+id/sheetLastUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sheet_station_hours"/>
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+        <ImageView
+            android:id="@+id/sheetPayment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_payment_primary_24dp"
+            android:layout_marginEnd="16dp"/>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
         <View
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1" />
-
-        <LinearLayout
-            android:layout_width="0dp"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sheetDirections"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="5"
-            android:orientation="vertical">
+            android:theme="@style/Theme.MaterialComponents"
+            android:text="@string/sheet_station_directions"
+            android:textColor="@color/colorAccent"
+            app:strokeColor="@color/colorAccent"
+            app:strokeWidth="1dp"
+            android:drawableLeft="@drawable/ic_directions_primary_24dp"/>
 
-            <TextView
-                android:id="@+id/textViewSheet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dandelion Chocolate"
-                android:textColor="#000000"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4.7" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="(51)" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:background="#5d5d5d" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="12 min away"
-                android:textColor="#5692F5" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:background="#5d5d5d" />
-
-        </LinearLayout>
-
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:drawableLeft="@drawable/ic_my_location_black_24dp"
-        android:drawablePadding="16dp"
-        android:text="740 Valencia St, San Fracisco, CA" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:drawableLeft="@drawable/ic_my_location_black_24dp"
-        android:drawablePadding="16dp"
-        android:text="(415) 349-0942" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:drawableLeft="@drawable/ic_my_location_black_24dp"
-        android:drawablePadding="16dp"
-        android:text="Wed, 10 AM - 9 PM" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="#000"
-        android:text="PROCEED PAYMENT"
-        android:textColor="#fff" />
-
 </LinearLayout>

@@ -63,6 +63,12 @@
     <string name="fav_station_fragment">Favorita</string>
     <string name="notifybike_station_fragment">Notificar si hay bicicleta disponible</string>
     <string name="notifyfree_station_fragment">Notificar si hay hueco disponible</string>
-    <string name="dialog_loading_information">Cargando información...</string>
+    <string name="dialog_loading_information">Cargando información…</string>
+    <string name="sheet_station_bikes">Bicicletas:</string>
+    <string name="sheet_station_stands">Sitios libres:</string>
+    <string name="sheet_station_last_update">Última actualización:</string>
+    <string name="sheet_station_hours">horas</string>
+    <string name="sheet_station_directions">Como llegar</string>
+    <string name="sheet_station_closed">Cerrada temporalmente</string>
     <string name="jcdecaux_api">826d3b8a1da38c94e235e378d86abdb4802e18f5</string>
 </resources>

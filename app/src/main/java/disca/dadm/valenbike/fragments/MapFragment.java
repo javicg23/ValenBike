@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -8,14 +9,21 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.Layout;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -44,6 +52,7 @@ import com.google.maps.android.clustering.ClusterManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
@@ -222,7 +231,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         this.map = googleMap;
 
         // request for stations of valenbisi
-        requestStations(0);
+        //requestStations(0);
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
@@ -414,13 +423,70 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     public void receivedStation(Station station) {
         View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
-        TextView tv = dialogView.findViewById(R.id.textViewSheet);
-        tv.setText(station.getAddress());
+        initDialogStation(dialogView, station);
         dialog.setContentView(dialogView);
         LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
         moveCamera(position, CAMERA_ZOOM_STREET);
         dialog.show();
         requestDone();
+    }
+
+    private void initDialogStation(View dialogView, Station station) {
+        TextView numberStation = dialogView.findViewById(R.id.sheetNumberStation);
+        TextView address = dialogView.findViewById(R.id.sheetAddress);
+        TextView bikes = dialogView.findViewById(R.id.sheetAvailableBikes);
+        TextView stands = dialogView.findViewById(R.id.sheetAvailableStands);
+        TextView lastUpdate = dialogView.findViewById(R.id.sheetLastUpdate);
+        ImageView payment = dialogView.findViewById(R.id.sheetPayment);
+        final CheckBox reminder = dialogView.findViewById(R.id.sheetReminder);
+        final CheckBox favourite = dialogView.findViewById(R.id.sheetFavourite);
+        Button directions = dialogView.findViewById(R.id.sheetDirections);
+
+        numberStation.setText(String.valueOf(station.getNumber()));
+        address.setText(station.getAddress());
+        bikes.setText(String.valueOf(station.getAvailableBikes()));
+        stands.setText(String.valueOf(station.getAvailableBikeStands()));
+
+        long now = new Date().getTime();
+        String dateString = DateFormat.format("HH:mm", new Date(now - station.getLastUpdate())).toString();
+        lastUpdate.setText(dateString);
+
+        if (!station.getBanking()) {
+            payment.setVisibility(View.INVISIBLE);
+        }
+
+        reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp));
+                    Toast.makeText(getActivity(),"reminder true",Toast.LENGTH_SHORT).show();
+                } else {
+                    reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp));
+                    Toast.makeText(getActivity(),"reminder false",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp));
+                    Toast.makeText(getActivity(),"favourite true",Toast.LENGTH_SHORT).show();
+                } else {
+                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_border_magenta_24dp));
+                    Toast.makeText(getActivity(),"favourite false",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        directions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getActivity(),"pulsado directions",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {
