@@ -18,8 +18,7 @@ import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.activities.MainActivity;
-import disca.dadm.valenbike.fragments.MapFragment;
+import disca.dadm.valenbike.interfaces.OnTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 
 public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {

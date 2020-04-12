@@ -20,6 +20,7 @@ import disca.dadm.valenbike.R;
 
 public class DirectionsFragment extends Fragment {
     public static final String DATA_RECEIVE = "data_receive";
+    private String location;
 
     private TextView text;
 
@@ -33,7 +34,7 @@ public class DirectionsFragment extends Fragment {
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
-            text.setText(args.getString(DATA_RECEIVE));
+            location = args.getString(DATA_RECEIVE);
         }
     }
 
@@ -47,7 +48,6 @@ public class DirectionsFragment extends Fragment {
         navigationView.setVisibility(View.GONE);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        text = rootView.findViewById(R.id.textView);
         return rootView;
     }
 

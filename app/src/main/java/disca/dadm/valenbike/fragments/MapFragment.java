@@ -1,17 +1,13 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.text.Layout;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -49,7 +44,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.io.IOException;
@@ -59,8 +53,8 @@ import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.ClusterStation;
-import disca.dadm.valenbike.models.DataPassListener;
-import disca.dadm.valenbike.tasks.OnTaskCompleted;
+import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.interfaces.OnTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
@@ -158,8 +152,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // open directiones fragment and pass location
-                dataPassListener.passLocationToRoutes("valencia");
+                // open directions fragment and pass location
+                dataPassListener.passLocationToDirection("valencia");
             }
         });
 

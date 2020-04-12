@@ -1,20 +1,15 @@
 package disca.dadm.valenbike.activities;
 
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.fragments.DirectionsFragment;
@@ -22,7 +17,7 @@ import disca.dadm.valenbike.fragments.HistoryFragment;
 import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
-import disca.dadm.valenbike.models.DataPassListener;
+import disca.dadm.valenbike.interfaces.DataPassListener;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, DataPassListener {
 
@@ -125,23 +120,22 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            navigationView.setVisibility(View.VISIBLE);
-
-            getSupportFragmentManager().popBackStackImmediate();
-            /*Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
-
-            if (fragment == null) {
-                fragment = new MapFragment();
-            }
-
-            changeFragment(fragment, TAG_MAP);*/
+            restoreMapFragmentFromDirections();
         }
         return true;
     }
-
     @Override
-    public void passLocationToRoutes(String data) {
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
+        if ((keyCode == KeyEvent.KEYCODE_BACK))
+        {
+            restoreMapFragmentFromDirections();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    @Override
+    public void passLocationToDirection(String data) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
 
@@ -153,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         args.putString(DirectionsFragment.DATA_RECEIVE, data);
         fragment.setArguments(args);
 
-        //changeFragment(fragment, TAG_DIRECTIONS);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.frameLayout, fragment, TAG_DIRECTIONS)
@@ -166,5 +159,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 .beginTransaction()
                 .replace(R.id.frameLayout, fragment, tag)
                 .commit();
+    }
+
+    private void restoreMapFragmentFromDirections() {
+        getSupportFragmentManager().popBackStackImmediate();
+        navigationView.setVisibility(View.VISIBLE);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 }

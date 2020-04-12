@@ -1,4 +1,4 @@
-package disca.dadm.valenbike.tasks;
+package disca.dadm.valenbike.interfaces;
 
 import java.util.List;
 
