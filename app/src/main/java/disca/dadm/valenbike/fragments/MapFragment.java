@@ -3,6 +3,7 @@ package disca.dadm.valenbike.fragments;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -58,6 +59,7 @@ import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.ClusterStation;
+import disca.dadm.valenbike.models.DataPassListener;
 import disca.dadm.valenbike.tasks.OnTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
@@ -86,8 +88,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
     private PopupMenu popup;
-    //private ProgressDialog loadingDialog;
     private boolean requestInProgress = false;
+    private DataPassListener dataPassListener;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
 
     @Override
@@ -120,6 +127,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         disableLocation();
     }
 
+    @Override
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+        // This makes sure that the host activity has implemented the callback interface
+        // If not, it throws an exception
+        try
+        {
+            dataPassListener = (DataPassListener) context;
+        }
+        catch (ClassCastException e)
+        {
+            throw new ClassCastException(context.toString()+ " must implement DataPassListener");
+        }
+    }
+
+    public void setDataPassListener(DataPassListener callback) {
+        this.dataPassListener = callback;
+    }
+
     private void fabsListeners() {
         fabMapType.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,7 +158,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSnackBar(rootView,"pulsado como llegar");
+                // open directiones fragment and pass location
+                dataPassListener.passLocationToRoutes("valencia");
             }
         });
 
@@ -396,6 +424,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
     @Override
     public void receivedAllStations(List<Station> stations) {
+        // to avoid cluster repetitions
+        map.clear();
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
         map.setOnCameraIdleListener(clusterManager);

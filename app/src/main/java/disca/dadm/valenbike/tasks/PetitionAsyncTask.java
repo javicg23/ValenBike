@@ -38,6 +38,7 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
         super.onPreExecute();
         progressDialog = new ProgressDialog(context);
         progressDialog.setMessage(context.getString(R.string.dialog_loading_information));
+        progressDialog.setCancelable(false);
         progressDialog.show();
     }
 

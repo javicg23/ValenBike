@@ -1,7 +1,10 @@
 package disca.dadm.valenbike.activities;
 
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -14,12 +17,22 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.fragments.DirectionsFragment;
 import disca.dadm.valenbike.fragments.HistoryFragment;
 import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
+import disca.dadm.valenbike.models.DataPassListener;
 
-public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, DataPassListener {
+
+    private static final String TAG_MAP = "map";
+    private static final String TAG_STATIONS = "stations";
+    private static final String TAG_HISTORY = "history";
+    private static final String TAG_INFORMATION = "information";
+    private static final String TAG_DIRECTIONS = "directions";
+
+    private BottomNavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,16 +41,22 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
 
         // Sets the listener to be notified when any element of the BottomNavigationView is clicked
-        ((BottomNavigationView) findViewById(R.id.bottomView)).setOnNavigationItemSelectedListener(this);
+        navigationView = findViewById(R.id.bottomView);
+        navigationView.setOnNavigationItemSelectedListener(this);
 
-        //hide action bar
-        getSupportActionBar().hide();
+        // Display the Stations title on the ActionBar
+        getSupportActionBar().setTitle(R.string.app_name);
 
         // Starts the app with MapFragment
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.frameLayout, new MapFragment())
-                .commit();
+        changeFragment(new MapFragment(),TAG_MAP);
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        if (fragment instanceof MapFragment) {
+            MapFragment mapFragment = (MapFragment) fragment;
+            mapFragment.setDataPassListener(this);
+        }
     }
 
     @Override
@@ -51,25 +70,23 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             // Display MapFragment
             case R.id.navigation_map:
                 // Get or create a new MapFragment
-                tag = "Map";
+                tag = TAG_MAP;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
                     fragment = new MapFragment();
                 }
-                //hide action bar
-                getSupportActionBar().hide();
+                // Display the Stations title on the ActionBar
+                getSupportActionBar().setTitle(R.string.app_name);
                 break;
 
             // Display StationsFragment
             case R.id.navigation_stations:
                 // Get or create a new StationsFragment
-                tag = "Stations";
+                tag = TAG_STATIONS;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
                     fragment = new StationsFragment();
                 }
-                //show action bar
-                getSupportActionBar().show();
                 // Display the Stations title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_stations);
                 break;
@@ -77,13 +94,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             // Display HistoryFragment
             case R.id.navigation_history:
                 // Get or create a new HistoryFragment
-                tag = "History";
+                tag = TAG_HISTORY;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
                     fragment = new HistoryFragment();
                 }
-                //show action bar
-                getSupportActionBar().show();
                 // Display the HistoryFragment title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_history);
                 break;
@@ -91,24 +106,65 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             // Display InformationFragment
             case R.id.navigation_information:
                 // Get or create a new InformationFragment
-                tag = "Information";
+                tag = TAG_INFORMATION;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
                     fragment = new InformationFragment();
                 }
-                //show action bar
-                getSupportActionBar().show();
                 // Display the InformationFragment title on the ActionBar
                 getSupportActionBar().setTitle(R.string.bottom_menu_information);
                 break;
         }
 
         // Replace the existing Fragment by the new one
+        changeFragment(fragment, tag);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            navigationView.setVisibility(View.VISIBLE);
+
+            getSupportFragmentManager().popBackStackImmediate();
+            /*Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
+
+            if (fragment == null) {
+                fragment = new MapFragment();
+            }
+
+            changeFragment(fragment, TAG_MAP);*/
+        }
+        return true;
+    }
+
+    @Override
+    public void passLocationToRoutes(String data) {
+
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
+
+        if (fragment == null) {
+            fragment = new DirectionsFragment();
+        }
+
+        Bundle args = new Bundle();
+        args.putString(DirectionsFragment.DATA_RECEIVE, data);
+        fragment.setArguments(args);
+
+        //changeFragment(fragment, TAG_DIRECTIONS);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.frameLayout, fragment, TAG_DIRECTIONS)
+                .addToBackStack(TAG_DIRECTIONS)
+                .commit();
+    }
+
+    private void changeFragment(Fragment fragment, String tag) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.frameLayout, fragment, tag)
                 .commit();
-
-        return true;
     }
 }
