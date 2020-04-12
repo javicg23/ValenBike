@@ -125,6 +125,10 @@ public class Station {
         this.lastUpdate = value;
     }
 
+    public boolean isActive(){
+        return status.equals("OPEN");
+    }
+
 
     public class Position {
         private double lat;

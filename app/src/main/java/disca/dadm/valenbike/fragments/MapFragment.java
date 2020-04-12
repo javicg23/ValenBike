@@ -20,6 +20,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -435,11 +436,43 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         final CheckBox reminder = dialogView.findViewById(R.id.sheetReminder);
         final CheckBox favourite = dialogView.findViewById(R.id.sheetFavourite);
         Button directions = dialogView.findViewById(R.id.sheetDirections);
+        LinearLayout layoutInfo = dialogView.findViewById(R.id.sheetLayoutInfo);
+        LinearLayout layoutClosed = dialogView.findViewById(R.id.sheetLayoutClosed);
+        LinearLayout layoutDirections = dialogView.findViewById(R.id.sheetLayoutDirections);
 
         numberStation.setText(String.valueOf(station.getNumber()));
         address.setText(station.getAddress());
-        bikes.setText(String.valueOf(station.getAvailableBikes()));
-        stands.setText(String.valueOf(station.getAvailableBikeStands()));
+
+        /*todo change this to if(station.isActive()), it's because there are all stations closed*/
+        if (!station.isActive()){
+            bikes.setText(String.valueOf(station.getAvailableBikes()));
+            stands.setText(String.valueOf(station.getAvailableBikeStands()));
+
+            directions.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getActivity(),"pulsado directions",Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked){
+                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp));
+                        Toast.makeText(getActivity(),"reminder true",Toast.LENGTH_SHORT).show();
+                    } else {
+                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp));
+                        Toast.makeText(getActivity(),"reminder false",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } else {
+            layoutInfo.setVisibility(View.GONE);
+            layoutClosed.setVisibility(View.VISIBLE);
+            layoutDirections.setVisibility(View.GONE);
+            reminder.setVisibility(View.INVISIBLE);
+        }
 
         long now = new Date().getTime();
         String dateString = DateFormat.format("HH:mm", new Date(now - station.getLastUpdate())).toString();
@@ -448,19 +481,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         if (!station.getBanking()) {
             payment.setVisibility(View.INVISIBLE);
         }
-
-        reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp));
-                    Toast.makeText(getActivity(),"reminder true",Toast.LENGTH_SHORT).show();
-                } else {
-                    reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp));
-                    Toast.makeText(getActivity(),"reminder false",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
 
         favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -475,12 +495,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             }
         });
 
-        directions.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getActivity(),"pulsado directions",Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {

@@ -4,7 +4,6 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#ffffff"
     android:orientation="vertical"
     android:padding="16dp"
     app:behavior_hideable="false"
@@ -91,7 +90,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp"
+        android:id="@+id/sheetLayoutInfo">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -110,6 +110,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="" />
+
         <View
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -132,6 +133,23 @@
             android:layout_height="wrap_content"
             android:text=""
             android:layout_marginEnd="16dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:id="@+id/sheetLayoutClosed">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_rounded"
+            android:backgroundTint="@android:color/holo_red_light"
+            android:text="Estación cerrada"
+            android:textColor="@android:color/black"
+            android:clickable="false"
+            android:layout_marginBottom="16dp"
+            />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -166,7 +184,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:id="@+id/sheetLayoutDirections">
         <View
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
