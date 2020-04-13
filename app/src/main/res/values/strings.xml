@@ -58,6 +58,8 @@
     <string name="permissions_not_granted">No podrá ver su localización porque no ha dado permisos</string>
     <string name="internet_required_connexion">Es necesario conexión a internet</string>
     <string name="internet_lost_connexion">No podrás acceder a todas las funciones sin conexión a internet</string>
+    <string name="directions_no_gps_location">Tiene que visualizar su posicion en el mapa para poder acceder a su ubicación</string>
+    <string name="directions_no_source_destination">Introduzca los puntos de origen y destino</string>
     <string name="name_station_fragment">Nombre: </string>
     <string name="adress_station_fragment">Direccion: </string>
     <string name="bikes_station_fragment">Bicicletas disponibles: </string>

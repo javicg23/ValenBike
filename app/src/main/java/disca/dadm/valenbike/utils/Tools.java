@@ -13,9 +13,11 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class Tools {
 
-    public static void showSnackBar(View view, String msg) {
+    public static void showSnackBar(View view, boolean aboveNav, String msg) {
         Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
-        snackbar.setAnchorView(R.id.bottomView);
+        if (aboveNav) {
+            snackbar.setAnchorView(R.id.bottomView);
+        }
         snackbar.show();
     }
 

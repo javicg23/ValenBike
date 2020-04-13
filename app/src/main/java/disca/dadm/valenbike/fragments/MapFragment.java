@@ -166,20 +166,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // open directions fragment and pass location if active, and marker as a destination
-                LatLng locationPos = null;
-                String locationAdd = "";
-                LatLng markerPos = null;
-                String markerAdd = "";
-                if (locationActive) {
-                    locationPos = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-                    locationAdd = addressLastLocation;
-                }
+                LatLng position = null;
                 if (markerSearch != null) {
-                    markerPos = markerSearch.getPosition();
-                    markerAdd = addressSearch;
+                    position = markerSearch.getPosition();
                 }
-                dataPassListener.passLocationToDirection(locationPos, locationAdd, markerPos, markerAdd);
+                openDirections(position, addressSearch);
             }
         });
 
@@ -192,11 +183,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                     if (checkLimitBounds(position)) {
                         moveCamera(position, CAMERA_ZOOM_STREET);
                     } else {
-                        showSnackBar(rootView, getString(R.string.map_location_out_bounds));
+                        showSnackBar(rootView, true, getString(R.string.map_location_out_bounds));
                     }
                 }
             }
         });
+    }
+
+    private void openDirections(LatLng position, String address) {
+        // open directions fragment and pass location if active, and marker as a destination
+        LatLng locationPos = null;
+        String locationAdd = "";
+        LatLng destinationPos = null;
+        String destinationAdd = "";
+        if (locationActive && lastLocation != null) {
+            locationPos = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            locationAdd = addressLastLocation;
+        }
+        if (position != null) {
+            destinationPos = position;
+            destinationAdd = address;
+        }
+        dataPassListener.passLocationToDirection(locationPos, locationAdd, destinationPos, destinationAdd);
     }
 
     private void initMapAndLocation() {
@@ -255,7 +263,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         }
         // Notify the user that permission were not granted
         else {
-            showSnackBar(rootView, getString(R.string.permissions_not_granted));
+            showSnackBar(rootView, true, getString(R.string.permissions_not_granted));
         }
     }
 
@@ -289,7 +297,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                     coordinatesToAddress(false, latLng);
                     setMarkerSearch(latLng);
                 } else {
-                    showSnackBar(rootView, getString(R.string.map_marker_out_bounds));
+                    showSnackBar(rootView, true, getString(R.string.map_marker_out_bounds));
                 }
             }
         });
@@ -422,7 +430,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
             @Override
             public void onError(Status status) {
-                showSnackBar(rootView, getString(R.string.places_search_error));
+                showSnackBar(rootView, true, getString(R.string.places_search_error));
             }
         });
 
@@ -471,7 +479,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     public void receivedStation(Station station) {
         View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
-        initDialogStation(dialogView, station);
+        initDialogStation(dialog, dialogView, station);
         dialog.setContentView(dialogView);
         LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
         moveCamera(position, CAMERA_ZOOM_STREET);
@@ -479,11 +487,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         requestDone();
     }
 
-    private void initDialogStation(View dialogView, Station station) {
+    private void initDialogStation(final BottomSheetDialog dialog, final View dialogView, final Station station) {
         TextView numberStation = dialogView.findViewById(R.id.sheetNumberStation);
         TextView address = dialogView.findViewById(R.id.sheetAddress);
         TextView bikes = dialogView.findViewById(R.id.sheetAvailableBikes);
-        TextView stands = dialogView.findViewById(R.id.sheetAvailableStands);
+        final TextView stands = dialogView.findViewById(R.id.sheetAvailableStands);
         TextView lastUpdate = dialogView.findViewById(R.id.sheetLastUpdate);
         ImageView payment = dialogView.findViewById(R.id.sheetPayment);
         final CheckBox reminder = dialogView.findViewById(R.id.sheetReminder);
@@ -504,7 +512,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             directions.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getActivity(),"pulsado directions",Toast.LENGTH_SHORT).show();
+                    dialog.hide();
+                    LatLng position = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
+                    openDirections(position, station.getAddress());
                 }
             });
 
@@ -512,10 +522,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked){
-                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp));
+                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
                         Toast.makeText(getActivity(),"reminder true",Toast.LENGTH_SHORT).show();
                     } else {
-                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp));
+                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp, null));
                         Toast.makeText(getActivity(),"reminder false",Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -539,10 +549,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
-                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp));
+                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp, null));
                     Toast.makeText(getActivity(),"favourite true",Toast.LENGTH_SHORT).show();
                 } else {
-                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_border_magenta_24dp));
+                    favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_border_magenta_24dp, null));
                     Toast.makeText(getActivity(),"favourite false",Toast.LENGTH_SHORT).show();
                 }
             }
