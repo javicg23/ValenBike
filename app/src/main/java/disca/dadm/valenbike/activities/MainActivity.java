@@ -5,6 +5,7 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         return super.onKeyDown(keyCode, event);
     }
     @Override
-    public void passLocationToDirection(String data) {
+    public void passLocationToDirection(LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
 
@@ -144,7 +145,10 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
 
         Bundle args = new Bundle();
-        args.putString(DirectionsFragment.DATA_RECEIVE, data);
+        args.putParcelable(DirectionsFragment.SOURCE_POSITION, sourcePosition);
+        args.putString(DirectionsFragment.SOURCE_ADDRESS, sourceAddress);
+        args.putParcelable(DirectionsFragment.DESTINATION_POSITION, destinationPosition);
+        args.putString(DirectionsFragment.DESTINATION_ADDRESS, destinationAddress);
         fragment.setArguments(args);
 
         getSupportFragmentManager()

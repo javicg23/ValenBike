@@ -8,6 +8,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
@@ -42,12 +44,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -55,7 +63,9 @@ import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnTaskCompleted;
+import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
@@ -66,16 +76,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
     private final float CAMERA_ZOOM_STREET = 17;
     private final double POSITION_MARKER_SHEET = - 0.001;
+    private final String TITLE_SEARCH = "SEARCH";
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
-    private LatLngBounds LIMIT_MAP = new LatLngBounds(
-            new LatLng(39.354547, -0.574788),new LatLng(39.583997, -0.169773));
+    private final LatLngBounds LIMIT_MAP = new LatLngBounds(
+             new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
 
     private View rootView;
     private GoogleMap map;
-    private SearchView searchView;
     private FloatingActionButton fabMapType, fabDirections, fabLocation;
     private Marker markerSearch;
     private Location lastLocation;
+    private String addressLastLocation;
+    private boolean locationActive;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
     private FusedLocationProviderClient locationProviderClient;
     private MyGoogleLocationCallback callback;
@@ -84,6 +96,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     private PopupMenu popup;
     private boolean requestInProgress = false;
     private DataPassListener dataPassListener;
+    private AutocompleteSupportFragment autocompleteSearch;
+    private String addressSearch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,12 +111,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
-        searchView = rootView.findViewById(R.id.searchBar);
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
+        autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
 
-        searchViewListener();
+        initSearch();
         fabsListeners();
         createPopupMenu();
         initMapAndLocation();
@@ -152,8 +166,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // open directions fragment and pass location
-                dataPassListener.passLocationToDirection("valencia");
+                // open directions fragment and pass location if active, and marker as a destination
+                LatLng locationPos = null;
+                String locationAdd = "";
+                LatLng markerPos = null;
+                String markerAdd = "";
+                if (locationActive) {
+                    locationPos = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+                    locationAdd = addressLastLocation;
+                }
+                if (markerSearch != null) {
+                    markerPos = markerSearch.getPosition();
+                    markerAdd = addressSearch;
+                }
+                dataPassListener.passLocationToDirection(locationPos, locationAdd, markerPos, markerAdd);
             }
         });
 
@@ -162,9 +188,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             @Override
             public void onClick(View v) {
                 if (lastLocation != null) {
-                    if (LIMIT_MAP.southwest.longitude < lastLocation.getLongitude() && lastLocation.getLongitude() < LIMIT_MAP.northeast.longitude &&
-                            LIMIT_MAP.southwest.latitude < lastLocation.getLatitude() && lastLocation.getLatitude() < LIMIT_MAP.northeast.latitude) {
-                        LatLng position = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+                    LatLng position = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+                    if (checkLimitBounds(position)) {
                         moveCamera(position, CAMERA_ZOOM_STREET);
                     } else {
                         showSnackBar(rootView, getString(R.string.map_location_out_bounds));
@@ -260,19 +285,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
-                setMarkerSearch(latLng);
+                if (checkLimitBounds(latLng)) {
+                    coordinatesToAddress(false, latLng);
+                    setMarkerSearch(latLng);
+                } else {
+                    showSnackBar(rootView, getString(R.string.map_marker_out_bounds));
+                }
             }
         });
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 if (marker.getTitle() == null){
+                    // group of stations
                     LatLng position = marker.getPosition();
                     float zoom = map.getCameraPosition().zoom + 2;
                     moveCamera(position, zoom);
-                } else if (marker.getTitle().equals("SEARCH")){
-                    showSnackBar(rootView,"pulsado search");
+                } else if (marker.getTitle().equals(TITLE_SEARCH)){
+                    // search marker or long click
+                    markerSearch.remove();
+                    markerSearch = null;
                 } else if (!requestInProgress){
+                    // station
                     requestStations(Integer.parseInt(marker.getTitle()));
                 }
                 return true;
@@ -292,6 +326,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
     }
 
+    private boolean checkLimitBounds(LatLng latLng) {
+        return LIMIT_MAP.southwest.longitude < latLng.longitude && latLng.longitude < LIMIT_MAP.northeast.longitude &&
+                LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude;
+    }
+
+    public void setAddressSearch(String address) {
+        this.addressSearch = address;
+    }
+
+    public void setAddressLocation(String address) {
+        this.addressLastLocation = address;
+    }
+
+    // depends on the location put the res in addressLastLocation or addressSearch
+    private void coordinatesToAddress(boolean location, LatLng latLng) {
+        // Start asynchronous task to translate coordinates into an address
+        if (isNetworkConnected(getContext())) {
+            (new GeocoderAsyncTask(MapFragment.this)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
+        }
+    }
+
     private void moveCamera(LatLng position, float zoom) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
     }
@@ -300,7 +355,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         if (markerSearch != null) {
             markerSearch.remove();
         }
-        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title("SEARCH"));
+        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(TITLE_SEARCH));
     }
     /**
      * Updates the user interface to display the new latitude and longitude.
@@ -308,6 +363,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
      */
     private void updateUI(Location location) {
         lastLocation = location;
+        coordinatesToAddress(true, new LatLng(location.getLatitude(), location.getLongitude()));
+
         if (locationChangedListener != null) {
             locationChangedListener.onLocationChanged(location);
         }
@@ -347,61 +404,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         });
     }
 
-    private void searchViewListener() {
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+    private void initSearch() {
+        Places.initialize(getContext(), getString(R.string.google_maps_key));
+
+        // Specify the types of place data to return, country and limit in the map
+        autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME));
+        autocompleteSearch.setCountry("ES");
+        autocompleteSearch.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteSearch.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                return querySubmit(query);
+            public void onPlaceSelected(Place place) {
+                setMarkerSearch(place.getLatLng());
+                addressSearch = place.getAddress();
             }
+
             @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
+            public void onError(Status status) {
+                showSnackBar(rootView, getString(R.string.places_search_error));
             }
         });
-    }
 
-    private boolean querySubmit(String query) {
-        String location = query;
-        location = location.toLowerCase();
-
-        List<Address> addressList = null;
-
-        if (!location.equals("")){
-            Geocoder geocoder = new Geocoder(getActivity());
-            boolean insideArea = false;
-
-            for (int i = 0; i < 2 && !insideArea; i++) {
-                try {
-                    addressList = geocoder.getFromLocationName(location,1);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                if (addressList != null && addressList.size() != 0) {
-                    Address address = addressList.get(0);
-                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-
-                    if (LIMIT_MAP.southwest.longitude < latLng.longitude && latLng.longitude < LIMIT_MAP.northeast.longitude &&
-                            LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude) {
-
-                        setMarkerSearch(latLng);
-                        moveCamera(latLng, CAMERA_ZOOM_STREET);
-                        insideArea = true;
-                    }
-                }
-
-                if (!location.contains("valencia")) {
-                    location = "valencia " + location;
-                } else {
-                    location = location.replace("valencia", "");
-                }
-            }
-
-            if (!insideArea) {
-                showSnackBar(rootView,getString(R.string.map_search_out_bounds));
-            }
-        }
-        return false;
     }
 
     private void requestStations(int number) {
@@ -420,6 +444,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
     public void receivedAllStations(List<Station> stations) {
         // to avoid cluster repetitions
         map.clear();
+        // if exist marker added again
+        if (markerSearch != null) {
+            setMarkerSearch(markerSearch.getPosition());
+        }
+
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
         map.setOnCameraIdleListener(clusterManager);
@@ -521,6 +550,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
 
     }
 
+
     private class MyGoogleLocationCallback extends LocationCallback {
 
         /**
@@ -536,6 +566,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         public void onLocationAvailability(LocationAvailability locationAvailability) {
             super.onLocationAvailability(locationAvailability);
             map.setMyLocationEnabled(locationAvailability.isLocationAvailable());
+            locationActive = locationAvailability.isLocationAvailable();
             if (locationAvailability.isLocationAvailable()){
                 fabLocation.show();
             } else {

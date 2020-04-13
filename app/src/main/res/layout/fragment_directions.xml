@@ -45,12 +45,13 @@
             android:layout_height="wrap_content"
             app:helperTextTextColor="@color/light_grey"
             android:textColorHint="@color/light_grey"
-            android:hint="Origen">
+            android:hint="@string/directions_source">
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/directionsSource"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:text="Your Location"
+                android:text=""
                 />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
@@ -58,13 +59,14 @@
             android:layout_height="wrap_content"
             app:helperTextTextColor="@color/light_grey"
             android:textColorHint="@color/light_grey"
-            android:hint="Destino">
+            android:hint="@string/directions_destination">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/directionsDestination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:text="IKEA"
+                android:text=""
                 />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -79,11 +81,13 @@
         android:layout_marginStart="17dp">
 
         <ImageButton
+            android:id="@+id/directionsLocation"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginBottom="17dp"
             android:background="@drawable/ic_my_location_light_grey_24dp"/>
         <ImageButton
+            android:id="@+id/directionsSwapRoute"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:background="@drawable/ic_swap_vert_black_24dp"/>
