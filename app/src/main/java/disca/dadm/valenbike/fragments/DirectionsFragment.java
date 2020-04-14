@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.nio.file.Watchable;
+import java.util.Objects;
 
 import disca.dadm.valenbike.R;
 
@@ -34,6 +36,7 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
 public class DirectionsFragment extends Fragment {
+    public static final String ROUTE = "route";
     public static final String SOURCE_POSITION = "source_position";
     public static final String SOURCE_ADDRESS = "source_address";
     public static final String DESTINATION_POSITION = "destination_position";
@@ -41,6 +44,7 @@ public class DirectionsFragment extends Fragment {
 
     private View rootView;
     private String locationAddress;
+    private int routeDirections;
 
     private TextInputEditText sourceText, destinationText;
     private ImageButton swapRouteButton;
@@ -57,6 +61,7 @@ public class DirectionsFragment extends Fragment {
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
+            routeDirections = args.getInt(ROUTE);
             locationAddress = args.getString(SOURCE_ADDRESS);
             sourceText.setText(locationAddress);
             destinationText.setText(args.getString(DESTINATION_ADDRESS));
@@ -91,10 +96,15 @@ public class DirectionsFragment extends Fragment {
     private void initListeners() {
         // listener for hide keyword if lose the focus
         rootView.findViewById(R.id.layoutDirections).setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+                InputMethodManager imm = (InputMethodManager) Objects.requireNonNull(getActivity()).getSystemService(INPUT_METHOD_SERVICE);
+                View focus = getActivity().getCurrentFocus();
+                if(imm != null && focus != null) {
+                    imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+                }
+
                 return true;
             }
         });

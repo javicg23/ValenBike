@@ -3,12 +3,9 @@ package disca.dadm.valenbike.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +16,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,16 +49,16 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.maps.android.clustering.ClusterManager;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
-import disca.dadm.valenbike.interfaces.OnTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
@@ -72,32 +68,42 @@ import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskCompleted {
+public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted {
 
     private final float CAMERA_ZOOM_STREET = 17;
     private final double POSITION_MARKER_SHEET = - 0.001;
     private final String TITLE_SEARCH = "SEARCH";
+    public final int ROUTE_MARKER = 0;
+    public final int ROUTE_NONE = 1;
+    public final int ROUTE_STATION = 2;
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     private final LatLngBounds LIMIT_MAP = new LatLngBounds(
              new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
 
     private View rootView;
     private GoogleMap map;
-    private FloatingActionButton fabMapType, fabDirections, fabLocation;
-    private Marker markerSearch;
-    private Location lastLocation;
-    private String addressLastLocation;
-    private boolean locationActive;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
+    private FloatingActionButton fabMapType, fabDirections, fabLocation;
+    private AutocompleteSupportFragment autocompleteSearch;
+    private PopupMenu popup;
+    // route and direction
+    private Marker markerSearch;
+    private LatLng lastLocation, stationLatLng;
+    private String addressLastLocation, addressSearch, addressStation;
+    private boolean receivedMarkerAddress = true, receivedGPSAddress = true, receivedStationAddress = true;
+    private int routeDirections = ROUTE_NONE;
+    private boolean locationActive;
+
+    // location attributes
     private FusedLocationProviderClient locationProviderClient;
     private MyGoogleLocationCallback callback;
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
-    private PopupMenu popup;
+
+    // request of stations api
     private boolean requestInProgress = false;
+    // open direction fragment and pass objects
     private DataPassListener dataPassListener;
-    private AutocompleteSupportFragment autocompleteSearch;
-    private String addressSearch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -166,45 +172,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LatLng position = null;
-                if (markerSearch != null) {
-                    position = markerSearch.getPosition();
-                }
-                openDirections(position, addressSearch);
+                routeDirections = ROUTE_MARKER;
+                requestAddressDirections();
             }
         });
 
-        fabLocation.hide();
         fabLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (lastLocation != null) {
-                    LatLng position = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
-                    if (checkLimitBounds(position)) {
-                        moveCamera(position, CAMERA_ZOOM_STREET);
+                    if (checkLimitBounds(lastLocation)) {
+                        moveCamera(lastLocation, CAMERA_ZOOM_STREET);
                     } else {
                         showSnackBar(rootView, true, getString(R.string.map_location_out_bounds));
                     }
                 }
             }
         });
-    }
-
-    private void openDirections(LatLng position, String address) {
-        // open directions fragment and pass location if active, and marker as a destination
-        LatLng locationPos = null;
-        String locationAdd = "";
-        LatLng destinationPos = null;
-        String destinationAdd = "";
-        if (locationActive && lastLocation != null) {
-            locationPos = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            locationAdd = addressLastLocation;
-        }
-        if (position != null) {
-            destinationPos = position;
-            destinationAdd = address;
-        }
-        dataPassListener.passLocationToDirection(locationPos, locationAdd, destinationPos, destinationAdd);
     }
 
     private void initMapAndLocation() {
@@ -294,7 +278,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
             @Override
             public void onMapLongClick(LatLng latLng) {
                 if (checkLimitBounds(latLng)) {
-                    coordinatesToAddress(false, latLng);
                     setMarkerSearch(latLng);
                 } else {
                     showSnackBar(rootView, true, getString(R.string.map_marker_out_bounds));
@@ -339,19 +322,83 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 LIMIT_MAP.southwest.latitude < latLng.latitude && latLng.latitude < LIMIT_MAP.northeast.latitude;
     }
 
-    public void setAddressSearch(String address) {
-        this.addressSearch = address;
+    @Override
+    public void receivedAddressGPS(String address) {
+        receivedGPSAddress = true;
+        addressLastLocation = address;
+        openDirections();
     }
 
-    public void setAddressLocation(String address) {
-        this.addressLastLocation = address;
+    @Override
+    public void receivedAddressMarker(String address) {
+        receivedMarkerAddress = true;
+        addressSearch = address;
+        openDirections();
+    }
+
+    @Override
+    public void receivedAddressStation(String address) {
+        receivedStationAddress = true;
+        addressStation = address;
+        openDirections();
     }
 
     // depends on the location put the res in addressLastLocation or addressSearch
-    private void coordinatesToAddress(boolean location, LatLng latLng) {
+    private void coordinatesToAddress(int location, LatLng latLng) {
         // Start asynchronous task to translate coordinates into an address
         if (isNetworkConnected(getContext())) {
-            (new GeocoderAsyncTask(MapFragment.this)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
+            (new GeocoderAsyncTask(getContext(), MapFragment.this)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
+        }
+    }
+
+    private void openDirections() {
+        if (receivedStationAddress && receivedMarkerAddress && receivedGPSAddress) {
+            LatLng position = null;
+            String address = "";
+            if (routeDirections == ROUTE_MARKER) {
+                if (markerSearch != null) {
+                    position = markerSearch.getPosition();
+                    address = addressSearch;
+                }
+            } else if (routeDirections == ROUTE_STATION) {
+                position = stationLatLng;
+                address = addressStation;
+            }
+            // open directions fragment and pass location if active, and marker as a destination
+            LatLng locationPos = null;
+            String locationAdd = "";
+            LatLng destinationPos = null;
+            String destinationAdd = "";
+            if (locationActive && lastLocation != null) {
+                locationPos = lastLocation;
+                locationAdd = addressLastLocation;
+            }
+            if (position != null) {
+                destinationPos = position;
+                destinationAdd = address;
+            }
+            dataPassListener.passLocationToDirection(routeDirections, locationPos, locationAdd, destinationPos, destinationAdd);
+            routeDirections = ROUTE_NONE;
+        }
+    }
+
+    private void requestAddressDirections() {
+        if (routeDirections == ROUTE_MARKER) {
+            if (markerSearch != null) {
+                receivedMarkerAddress = false;
+                coordinatesToAddress(ParametersGeocoderTask.LOCATION_MARKER, markerSearch.getPosition());
+            }
+        } else {
+            receivedStationAddress = false;
+            coordinatesToAddress(ParametersGeocoderTask.LOCATION_STATION, stationLatLng);
+        }
+        if (locationActive && lastLocation != null) {
+            receivedGPSAddress = false;
+            coordinatesToAddress(ParametersGeocoderTask.LOCATION_GPS, lastLocation);
+        }
+
+        if (receivedStationAddress && receivedMarkerAddress && receivedGPSAddress) {
+            openDirections();
         }
     }
 
@@ -370,8 +417,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
      * It will also start an asynchronous task to translate those coordinates into a human readable address.
      */
     private void updateUI(Location location) {
-        lastLocation = location;
-        coordinatesToAddress(true, new LatLng(location.getLatitude(), location.getLongitude()));
+        LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
+        lastLocation = position;
 
         if (locationChangedListener != null) {
             locationChangedListener.onLocationChanged(location);
@@ -514,7 +561,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
                 public void onClick(View v) {
                     dialog.hide();
                     LatLng position = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
-                    openDirections(position, station.getAddress());
+                    stationLatLng = position;
+                    routeDirections = ROUTE_STATION;
+                    requestAddressDirections();
                 }
             });
 
@@ -559,6 +608,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnTaskC
         });
 
     }
+
 
 
     private class MyGoogleLocationCallback extends LocationCallback {

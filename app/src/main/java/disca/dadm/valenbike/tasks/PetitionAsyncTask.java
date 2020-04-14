@@ -18,16 +18,16 @@ import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.interfaces.OnTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 
 public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
 
-    private OnTaskCompleted listener;
+    private OnPetitionTaskCompleted listener;
     private Context context;
     private ProgressDialog progressDialog;
 
-    public PetitionAsyncTask(Context context, OnTaskCompleted listener) {
+    public PetitionAsyncTask(Context context, OnPetitionTaskCompleted listener) {
         this.listener = listener;
         this.context = context;
     }

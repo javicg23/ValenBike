@@ -1,18 +1,22 @@
 package disca.dadm.valenbike.models;
 
 public class ParametersGeocoderTask {
-    private boolean location;
+
+    public static int LOCATION_MARKER = 0;
+    public static int LOCATION_GPS = 1;
+    public static int LOCATION_STATION = 2;
+
+    private int location;
     private double latitude;
     private double longitude;
 
-    public ParametersGeocoderTask(boolean location, double latitude, double longitude) {
+    public ParametersGeocoderTask(int location, double latitude, double longitude) {
         this.location = location;
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-
-    public boolean isLocation() {
+    public int getLocation() {
         return location;
     }
 

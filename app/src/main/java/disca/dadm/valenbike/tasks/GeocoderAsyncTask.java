@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.tasks;
 
+import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
@@ -9,6 +10,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 import disca.dadm.valenbike.fragments.MapFragment;
+import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 
 /**
@@ -16,11 +18,13 @@ import disca.dadm.valenbike.models.ParametersGeocoderTask;
  */
 public class GeocoderAsyncTask extends AsyncTask<ParametersGeocoderTask, Void, Address> {
 
-    private WeakReference<MapFragment> fragment;
+    private OnGeocoderTaskCompleted listener;
+    private Context context;
     private ParametersGeocoderTask parametersGeocoderTask;
 
-    public GeocoderAsyncTask(MapFragment fragment) {
-        this.fragment = new WeakReference<>(fragment);
+    public GeocoderAsyncTask(Context context, OnGeocoderTaskCompleted listener) {
+        this.listener = listener;
+        this.context = context;
     }
 
     /**
@@ -30,22 +34,22 @@ public class GeocoderAsyncTask extends AsyncTask<ParametersGeocoderTask, Void, A
     protected void onPostExecute(Address address) {
         String res = "";
 
-        if (fragment.get() != null) {
-            // Check that the Geocoder got an address
-            if ((address != null) && (address.getMaxAddressLineIndex() != -1)) {
+        // Check that the Geocoder got an address
+        if ((address != null) && (address.getMaxAddressLineIndex() != -1)) {
 
-                // Get the whole address (comma separated lines) in a single String
-                res += (address.getAddressLine(0));
-                for (int i = 1; i <= address.getMaxAddressLineIndex(); i++) {
-                    res += ", " + address.getAddressLine(i);
-                }
+            // Get the whole address (comma separated lines) in a single String
+            res += (address.getAddressLine(0));
+            for (int i = 1; i <= address.getMaxAddressLineIndex(); i++) {
+                res += ", " + address.getAddressLine(i);
             }
-            // Update the user interface
-            if (parametersGeocoderTask.isLocation()){
-                fragment.get().setAddressLocation(res);
-            } else {
-                fragment.get().setAddressSearch(res);
-            }
+        }
+        // Update the user interface
+        if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_GPS){
+            listener.receivedAddressGPS(res);
+        } else if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_MARKER){
+            listener.receivedAddressMarker(res);
+        }else {
+            listener.receivedAddressStation(res);
         }
     }
 
@@ -58,7 +62,7 @@ public class GeocoderAsyncTask extends AsyncTask<ParametersGeocoderTask, Void, A
         // Hold reference to a Geocoder to translate coordinates into human readable addresses
         Geocoder geocoder;
         // Initialize the Geocoder
-        geocoder = new Geocoder(fragment.get().getContext());
+        geocoder = new Geocoder(context);
         parametersGeocoderTask = params[0];
         try {
             // Gets a maximum of 1 address from the Geocoder

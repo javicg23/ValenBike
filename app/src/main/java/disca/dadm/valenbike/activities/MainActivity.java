@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         return super.onKeyDown(keyCode, event);
     }
     @Override
-    public void passLocationToDirection(LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
+    public void passLocationToDirection(int route, LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
 
@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
 
         Bundle args = new Bundle();
+        args.putInt(DirectionsFragment.ROUTE, route);
         args.putParcelable(DirectionsFragment.SOURCE_POSITION, sourcePosition);
         args.putString(DirectionsFragment.SOURCE_ADDRESS, sourceAddress);
         args.putParcelable(DirectionsFragment.DESTINATION_POSITION, destinationPosition);

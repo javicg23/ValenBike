@@ -4,7 +4,7 @@ import java.util.List;
 
 import disca.dadm.valenbike.models.Station;
 
-public interface OnTaskCompleted {
+public interface OnPetitionTaskCompleted {
     void receivedAllStations(List<Station> stations);
     void receivedStation(Station station);
 }
