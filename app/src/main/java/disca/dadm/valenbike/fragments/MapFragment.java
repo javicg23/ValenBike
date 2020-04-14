@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -65,6 +67,7 @@ import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
+import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
@@ -73,12 +76,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private final float CAMERA_ZOOM_STREET = 17;
     private final double POSITION_MARKER_SHEET = - 0.001;
     private final String TITLE_SEARCH = "SEARCH";
+    // Create a LatLngBounds that includes the ValenBisi locations with an edge.
+    public static  final LatLngBounds LIMIT_MAP = new LatLngBounds(
+            new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
     public final int ROUTE_MARKER = 0;
     public final int ROUTE_NONE = 1;
     public final int ROUTE_STATION = 2;
-    // Create a LatLngBounds that includes the ValenBisi locations with an edge.
-    private final LatLngBounds LIMIT_MAP = new LatLngBounds(
-             new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
 
     private View rootView;
     private GoogleMap map;
@@ -142,7 +145,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     @Override
-    public void onAttach(Context context)
+    public void onAttach(@NonNull Context context)
     {
         super.onAttach(context);
         // This makes sure that the host activity has implemented the callback interface
@@ -194,7 +197,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private void initMapAndLocation() {
         //Configure Mapview and sync to google map.
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
 
         callback = new MyGoogleLocationCallback();
         locationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
@@ -295,6 +300,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 } else if (marker.getTitle().equals(TITLE_SEARCH)){
                     // search marker or long click
                     markerSearch.remove();
+                    autocompleteSearch.setText("");
                     markerSearch = null;
                 } else if (!requestInProgress){
                     // station
@@ -417,8 +423,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
      * It will also start an asynchronous task to translate those coordinates into a human readable address.
      */
     private void updateUI(Location location) {
-        LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
-        lastLocation = position;
+        lastLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
         if (locationChangedListener != null) {
             locationChangedListener.onLocationChanged(location);
@@ -463,20 +468,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         Places.initialize(getContext(), getString(R.string.google_maps_key));
 
         // Specify the types of place data to return, country and limit in the map
-        autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME));
+        autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG));
         autocompleteSearch.setCountry("ES");
         autocompleteSearch.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
 
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteSearch.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onPlaceSelected(Place place) {
+            public void onPlaceSelected(@NonNull Place place) {
                 setMarkerSearch(place.getLatLng());
+                moveCamera(place.getLatLng(), CAMERA_ZOOM_STREET);
                 addressSearch = place.getAddress();
             }
 
             @Override
-            public void onError(Status status) {
+            public void onError(@NonNull Status status) {
                 showSnackBar(rootView, true, getString(R.string.places_search_error));
             }
         });
@@ -497,6 +503,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     @Override
     public void receivedAllStations(List<Station> stations) {
+        /*todo remove this assignment*/
+        stations = getStations();
+
         // to avoid cluster repetitions
         map.clear();
         // if exist marker added again
@@ -560,8 +569,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 @Override
                 public void onClick(View v) {
                     dialog.hide();
-                    LatLng position = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
-                    stationLatLng = position;
+                    stationLatLng = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
                     routeDirections = ROUTE_STATION;
                     requestAddressDirections();
                 }

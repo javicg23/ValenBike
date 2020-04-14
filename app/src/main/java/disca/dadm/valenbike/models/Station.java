@@ -130,9 +130,14 @@ public class Station {
     }
 
 
-    public class Position {
+    public static class Position {
         private double lat;
         private double lng;
+
+        public Position(double lat, double lng) {
+            this.lat = lat;
+            this.lng = lng;
+        }
 
         public double getLat() {
             return lat;
