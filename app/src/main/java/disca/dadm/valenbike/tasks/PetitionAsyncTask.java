@@ -25,28 +25,16 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
 
     private OnPetitionTaskCompleted listener;
     private Context context;
-    private ProgressDialog progressDialog;
 
     public PetitionAsyncTask(Context context, OnPetitionTaskCompleted listener) {
         this.listener = listener;
         this.context = context;
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage(context.getString(R.string.dialog_loading_information));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-    }
 
     @Override
     protected void onPostExecute(List<Station> stations) {
         super.onPostExecute(stations);
-        progressDialog.dismiss();
-        progressDialog = null;
-
         if (stations.size() > 1) {
             listener.receivedAllStations(stations);
         } else {

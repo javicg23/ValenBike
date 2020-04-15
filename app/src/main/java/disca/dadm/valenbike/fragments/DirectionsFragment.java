@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
@@ -17,6 +18,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +78,11 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private List<Station> allStation;
     private AutocompleteSupportFragment autocompleteSearchSource, autocompleteSearchDestination;
     private DataPassListener dataPassListener;
+
+
+    // loading progress
+    private AlertDialog.Builder builder;
+    private AlertDialog progressDialog;
 
     private EditText sourceText, destinationText;
     private ImageButton swapRouteButton;
@@ -147,6 +155,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         fabDirections = rootView.findViewById(R.id.directionsFabNavigation);
         autocompleteSearchSource = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearchSource);
         autocompleteSearchDestination = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearchDestination);
+        progressDialog = getDialogProgressBar().create();
 
         initSearch();
         initListeners();
@@ -242,6 +251,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                 if (!locationAddress.equals("")) {
                     sourceText.setText(locationAddress);
                     locationCheck.setBackground(getResources().getDrawable(R.drawable.ic_my_location_accent_24dp, null));
+                    sourcePosition = locationPosition;
                 } else {
                     showSnackBar(rootView, false, getString(R.string.directions_no_gps_location));
                 }
@@ -251,9 +261,12 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         swapRouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String aux = destinationText.getText().toString();
+                String auxText = destinationText.getText().toString();
                 destinationText.setText(sourceText.getText().toString());
-                sourceText.setText(aux);
+                sourceText.setText(auxText);
+                LatLng auxPos = destinationPosition;
+                destinationPosition = sourcePosition;
+                sourcePosition = auxPos;
             }
         });
 
@@ -290,6 +303,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     }
 
     private void searchRoute() {
+        showProgressDialog();
 
         List<LatLng> waypoints = new ArrayList<>();
         waypoints.add(sourcePosition);
@@ -306,6 +320,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
         if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+            hideProgressDialog();
         } else if (isNetworkConnected(getContext())) {
             (new RouteAsyncTask(getContext(), this)).execute(waypoints);
         }
@@ -346,5 +361,33 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         else {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
         }
+        hideProgressDialog();
+    }
+
+    private AlertDialog.Builder getDialogProgressBar() {
+
+        if (builder == null) {
+            builder = new AlertDialog.Builder(getContext());
+
+            builder.setTitle(getString(R.string.dialog_loading_information));
+
+            final ProgressBar progressBar = new ProgressBar(getContext());
+            progressBar.setPadding(17, 17, 17, 17);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            progressBar.setLayoutParams(lp);
+            builder.setCancelable(false);
+            builder.setView(progressBar);
+        }
+        return builder;
+    }
+
+    private void showProgressDialog() {
+        progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        progressDialog.dismiss();
     }
 }

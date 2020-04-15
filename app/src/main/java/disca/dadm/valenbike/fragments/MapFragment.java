@@ -1,6 +1,8 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -18,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -119,6 +122,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private LocationRequest request;
 
+    // loading progress
+    private AlertDialog.Builder builder;
+    private AlertDialog progressDialog;
+
     // request of stations api
     private boolean requestInProgress = false;
     // open direction fragment and pass objects
@@ -140,12 +147,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
+        progressDialog = getDialogProgressBar().create();
 
         initSearch();
         fabsListeners();
         createPopupMenu();
         initMapAndLocation();
-
         return rootView;
     }
 
@@ -189,7 +196,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void showRoute() {
         // remove marker because we will use another and if he marks another place it doesnt disappear
-        if (routeDirections == ROUTE_MARKER) {
+        if (routeDirections == ROUTE_MARKER && markerSearch != null) {
             markerSearch.remove();
         }
 
@@ -488,9 +495,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             }
             dataPassListener.passLocationToDirection(locationPos, locationAdd, destinationPos, destinationAdd);
         }
+        hideProgressDialog();
     }
 
     private void requestAddressDirections() {
+        showProgressDialog();
         if (routeDirections == ROUTE_MARKER) {
             if (markerSearch != null) {
                 receivedMarkerAddress = false;
@@ -592,6 +601,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void requestStations(int number) {
+        showProgressDialog();
         if (isNetworkConnected(getContext())){
             requestInProgress = true;
             PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
@@ -601,6 +611,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void requestDone() {
         requestInProgress = false;
+        hideProgressDialog();
     }
 
     @Override
@@ -714,7 +725,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     }
 
+    private AlertDialog.Builder getDialogProgressBar() {
 
+        if (builder == null) {
+            builder = new AlertDialog.Builder(getContext());
+
+            builder.setTitle(getString(R.string.dialog_loading_information));
+
+            final ProgressBar progressBar = new ProgressBar(getContext());
+            progressBar.setPadding(17, 17, 17, 17);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            progressBar.setLayoutParams(lp);
+            builder.setCancelable(false);
+            builder.setView(progressBar);
+        }
+        return builder;
+    }
+
+    private void showProgressDialog() {
+        progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        progressDialog.dismiss();
+    }
 
     private class MyGoogleLocationCallback extends LocationCallback {
 
