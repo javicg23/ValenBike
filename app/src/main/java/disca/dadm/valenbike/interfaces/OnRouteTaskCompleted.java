@@ -1,5 +1,8 @@
 package disca.dadm.valenbike.interfaces;
 
 public interface OnRouteTaskCompleted {
-    void receivedRoute(String result);
+    void receivedOriginRoute(String result);
+    void receivedBikeRoute(String result);
+    void receivedDestinationRoute(String result);
+    void receivedWalkingRoute(String result);
 }

@@ -33,13 +33,15 @@ import javax.net.ssl.HttpsURLConnection;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.interfaces.OnRouteTaskCompleted;
+import disca.dadm.valenbike.models.ParametersRouteTask;
 
 // Result as a ArrayList because is the form to pass data to bundle
 
-public class RouteAsyncTask extends AsyncTask<List<LatLng>, Void, String> {
+public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String> {
 
     private OnRouteTaskCompleted listener;
     private Context context;
+    private int route;
 
     public RouteAsyncTask(Context context, OnRouteTaskCompleted listener) {
         this.listener = listener;
@@ -50,14 +52,16 @@ public class RouteAsyncTask extends AsyncTask<List<LatLng>, Void, String> {
      * Gets the route between the two markers and creates a matching Polyline.
      */
     @Override
-    protected String doInBackground(List<LatLng>... params) {
+    protected String doInBackground(ParametersRouteTask... params) {
+        route = params[0].getRoute();
+        LatLng origin = params[0].getOrigin();
+        LatLng destination = params[0].getDestination();
 
-        List<LatLng> listWaypoints = params[0];
         String result = null;
 
-        String waypoints = listWaypoints.get(1).latitude + "," + listWaypoints.get(1).longitude;
-        if (listWaypoints.size() == 4) {
-            waypoints += "|" + listWaypoints.get(2).latitude + "," + listWaypoints.get(2).longitude;
+        String mode = "walking";
+        if (route == ParametersRouteTask.ROUTE_BIKE) {
+            mode = "bicycling";
         }
 
         Uri.Builder builder = new Uri.Builder();
@@ -67,10 +71,9 @@ public class RouteAsyncTask extends AsyncTask<List<LatLng>, Void, String> {
         builder.appendPath("api");
         builder.appendPath("directions");
         builder.appendPath("json");
-        builder.appendQueryParameter("origin", listWaypoints.get(0).latitude + "," + listWaypoints.get(0).longitude);
-        builder.appendQueryParameter("destination", listWaypoints.get(listWaypoints.size() - 1).latitude + "," + listWaypoints.get(listWaypoints.size() - 1).longitude);
-        builder.appendQueryParameter("waypoints", waypoints);
-        builder.appendQueryParameter("mode","bicycling");
+        builder.appendQueryParameter("origin", origin.latitude + "," + origin.longitude);
+        builder.appendQueryParameter("destination", destination.latitude + "," + destination.longitude);
+        builder.appendQueryParameter("mode", mode);
         builder.appendQueryParameter("language","es");
         builder.appendQueryParameter("units","metric");
         builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_directions_key));
@@ -105,7 +108,20 @@ public class RouteAsyncTask extends AsyncTask<List<LatLng>, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        listener.receivedRoute(result);
+        switch (route) {
+            case ParametersRouteTask.ROUTE_ORIGIN:
+                listener.receivedOriginRoute(result);
+                break;
+            case ParametersRouteTask.ROUTE_BIKE:
+                listener.receivedBikeRoute(result);
+                break;
+            case ParametersRouteTask.ROUTE_DESTINATION:
+                listener.receivedDestinationRoute(result);
+                break;
+            case ParametersRouteTask.ROUTE_WALKING:
+                listener.receivedWalkingRoute(result);
+                break;
+        }
     }
 
 }

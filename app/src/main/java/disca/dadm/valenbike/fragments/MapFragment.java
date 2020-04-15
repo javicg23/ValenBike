@@ -92,7 +92,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
     private static final int ROUTE_MARKER = 0;
     private static final int ROUTE_STATION = 1;
-    public static final String ROUTES_POINTS = "route_points";
+    public static final String ROUTES_RESPONSES = "route_responses";
     private static int RECEIVED_STATIONS_NO = 0;
     private static int RECEIVED_STATIONS_YES = 1;
 
@@ -112,7 +112,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private boolean receivedMarkerAddress = true, receivedGPSAddress = true, receivedStationAddress = true;
     private int routeDirections = ROUTE_MARKER;
     private boolean locationActive;
-    private String routeResponse;
+    private ArrayList<JSONObject> routeResponses;
     private List<Polyline> polylinesRoutes = new ArrayList<>();
     private List<Marker> markerRoutes = new ArrayList<>();
 
@@ -188,7 +188,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
-            routeResponse = args.getString(ROUTES_POINTS);
+            ArrayList<String> stringResponses= args.getStringArrayList(ROUTES_RESPONSES);
+            try {
+                routeResponses = new ArrayList<>();
+                for (int i = 0; i < stringResponses.size(); i++) {
+                    routeResponses.add(new JSONObject(stringResponses.get(i)));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
             showRoute();
         }
@@ -201,7 +209,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         }
 
         //remove previous routes
-        if (markerRoutes.size() > 0) {
+        if (polylinesRoutes.size() > 0) {
             for (int i = 0; i < markerRoutes.size(); i++) {
                 markerRoutes.get(i).remove();
             }
@@ -211,55 +219,94 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             }
         }
 
+        // put a marker it start and final
+        showMarkersRoutes();
+
+        if (isCyclingAvailable()) {
+            showBikeRoute();
+        } else {
+            showWalkRoute();
+        }
+
+    }
+
+    private boolean isCyclingAvailable() {
+        int durationJourney = 0;
+        for (int i = 0; i < routeResponses.size() - 1; i++) {
+            durationJourney += getLocalDurationRoute(routeResponses.get(i));
+        }
+        int durationWalking = getLocalDurationRoute(routeResponses.get(routeResponses.size() - 1));
+        return durationJourney < durationWalking;
+    }
+
+    private int getLocalDurationRoute(JSONObject object) {
+        int duration = 0;
+        // Parse the response as a JSON object
         try {
-            // Parse the response as a JSON object
-            JSONObject object = new JSONObject(routeResponse);
+            duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
+            return duration;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return duration;
+    }
+
+    private void showBikeRoute() {
+        for (int i = 0; i < routeResponses.size() - 1; i++) {
+            String polyline = getPolylineRoute(routeResponses.get(i));
+            setPolylineToMap(polyline, i % 2 == 1);
+        }
+    }
+
+    private void showWalkRoute() {
+        String polyline = getPolylineRoute(routeResponses.get(routeResponses.size() - 1));
+        setPolylineToMap(polyline, false);
+    }
+
+    private String getPolylineRoute(JSONObject object) {
+        String polyline = null;
+        try {
             // Get the array named "routes"
             JSONArray routesArray = object.getJSONArray("routes");
             // The first object of this array contains an "overview_polyline" object
             JSONObject route = routesArray.getJSONObject(0);
 
-            JSONArray legs = route.getJSONArray("legs");
-
-            // put a marker it start and final
-            // obtain the coordinates
-            JSONObject startLocation = legs.getJSONObject(0).getJSONArray("steps").getJSONObject(0).getJSONObject("start_location");
-            LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
-
-            JSONArray stepsFinal = legs.getJSONObject(legs.length() - 1).getJSONArray("steps");
-            JSONObject endLocation = stepsFinal.getJSONObject(stepsFinal.length() - 1).getJSONObject("end_location");
-            LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
-
-            for (int i = 0; i < legs.length(); i++) {
-                JSONObject legObject = legs.getJSONObject(i);
-                JSONArray steps = legObject.getJSONArray("steps");
-
-                PolylineOptions options = new PolylineOptions().width(12).geodesic(true).clickable(true);
-                for (int j = 0; j < steps.length(); j++) {
-                    JSONObject step = steps.getJSONObject(j);
-                    JSONObject location = step.getJSONObject("start_location");
-                    LatLng position = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
-                    options.add(position);
-                    if (j == steps.length() - 1) {
-                        JSONObject locationEnd = step.getJSONObject("end_location");
-                        LatLng positionEnd = new LatLng(locationEnd.getDouble("lat"), locationEnd.getDouble("lng"));
-                        options.add(positionEnd);
-                    }
-                }
-
-                if (i % 2 == 1) {
-                    options.color(getResources().getColor(R.color.bike_route, null));
-                } else {
-                    options.color(getResources().getColor(R.color.walking_route, null));
-                }
-                polylinesRoutes.add(map.addPolyline(options));
-            }
+            polyline = route.getJSONObject("overview_polyline").getString("points");
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return polyline;
+    }
+
+    private void showMarkersRoutes() {
+        try {
+            JSONObject startLocation = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
+                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0)
+                    .getJSONArray("steps").getJSONObject(0).getJSONObject("start_location");
+
+            LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
+
+            JSONArray stepsFinal = routeResponses.get(routeResponses.size() - 1)
+                    .getJSONArray("routes").getJSONObject(0)
+                    .getJSONArray("legs").getJSONObject(0).getJSONArray("steps");
+            JSONObject endLocation = stepsFinal.getJSONObject(stepsFinal.length() - 1).getJSONObject("end_location");
+            LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setPolylineToMap(String polyline, boolean bike) {
+        PolylineOptions options = new PolylineOptions().width(12).geodesic(true).clickable(true).addAll(PolyUtil.decode(polyline));
+        if (bike) {
+            options.color(getResources().getColor(R.color.bike_route, null));
+        } else {
+            options.color(getResources().getColor(R.color.walking_route, null));
+        }
+        polylinesRoutes.add(map.addPolyline(options));
     }
 
     public void setDataPassListener(DataPassListener callback) {

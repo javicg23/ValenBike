@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import java.util.ArrayList;
+
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.fragments.DirectionsFragment;
 import disca.dadm.valenbike.fragments.HistoryFragment;
@@ -162,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     @Override
-    public void passRouteToMap(String points) {
+    public void passRouteToMap(ArrayList<String> responses) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
 
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
 
         Bundle args = new Bundle();
-        args.putString(MapFragment.ROUTES_POINTS, points);
+        args.putStringArrayList(MapFragment.ROUTES_RESPONSES, responses);
         fragment.setArguments(args);
         restoreMapFragmentFromDirections();
     }

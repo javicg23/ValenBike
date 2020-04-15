@@ -52,6 +52,7 @@ import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.interfaces.OnRouteTaskCompleted;
+import disca.dadm.valenbike.models.ParametersRouteTask;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.tasks.RouteAsyncTask;
@@ -79,6 +80,12 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private AutocompleteSupportFragment autocompleteSearchSource, autocompleteSearchDestination;
     private DataPassListener dataPassListener;
 
+    // to check if asyn task is received all of them
+    private boolean receivedBike = true;
+    private boolean receivedOrigin = true;
+    private boolean receivedDestination = true;
+    private boolean receivedWalking = true;
+    private String responseBike, responseOrigin, responseDestination, responseWalking;
 
     // loading progress
     private AlertDialog.Builder builder;
@@ -305,24 +312,27 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private void searchRoute() {
         showProgressDialog();
 
-        List<LatLng> waypoints = new ArrayList<>();
-        waypoints.add(sourcePosition);
-
         Station nearestBikeStation = getNearestStationToPosition(NEAREST_BIKE, sourcePosition);
         LatLng nearestBikePosition = new LatLng(nearestBikeStation.getPosition().getLat(), nearestBikeStation.getPosition().getLng());
-        waypoints.add(nearestBikePosition);
 
         Station nearestStandStation = getNearestStationToPosition(NEAREST_PARKING, destinationPosition);
         LatLng nearestStandPosition = new LatLng(nearestStandStation.getPosition().getLat(), nearestStandStation.getPosition().getLng());
-        waypoints.add(nearestStandPosition);
-
-        waypoints.add(destinationPosition);
-
         if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
             hideProgressDialog();
         } else if (isNetworkConnected(getContext())) {
-            (new RouteAsyncTask(getContext(), this)).execute(waypoints);
+            (new RouteAsyncTask(getContext(), this))
+                    .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_ORIGIN, sourcePosition, nearestBikePosition));
+            (new RouteAsyncTask(getContext(), this))
+                    .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_BIKE, nearestBikePosition, nearestStandPosition));
+            (new RouteAsyncTask(getContext(), this))
+                    .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_DESTINATION, nearestStandPosition, destinationPosition));
+            (new RouteAsyncTask(getContext(), this))
+                    .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_WALKING, sourcePosition, destinationPosition));
+            receivedBike = true;
+            receivedOrigin = true;
+            receivedDestination = true;
+            receivedWalking = true;
         }
     }
 
@@ -350,18 +360,52 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         return nearestStation;
     }
 
-    @Override
-    public void receivedRoute(String result) {
+    public void receivedAllRoute() {
+        if (receivedOrigin && receivedBike && receivedDestination && receivedWalking) {
+            // Check that the route was successfully obtained
+            if (responseOrigin != null && responseBike != null && responseDestination != null && responseWalking != null) {
+                ArrayList<String> responses = new ArrayList<>();
+                responses.add(responseOrigin);
+                responses.add(responseBike);
+                responses.add(responseDestination);
+                responses.add(responseWalking);
 
-        // Check that the route was successfully obtained
-        if (result != null) {
-            dataPassListener.passRouteToMap(result);
+                dataPassListener.passRouteToMap(responses);
+                hideProgressDialog();
+            }
         }
         // If no route was obtained then show a message saying so
         else {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
         }
-        hideProgressDialog();
+    }
+
+    @Override
+    public void receivedOriginRoute(String result) {
+        receivedOrigin = true;
+        responseOrigin = result;
+        receivedAllRoute();
+    }
+
+    @Override
+    public void receivedBikeRoute(String result) {
+        receivedBike = true;
+        responseBike = result;
+        receivedAllRoute();
+    }
+
+    @Override
+    public void receivedDestinationRoute(String result) {
+        receivedDestination = true;
+        responseDestination = result;
+        receivedAllRoute();
+    }
+
+    @Override
+    public void receivedWalkingRoute(String result) {
+        receivedWalking = true;
+        responseWalking = result;
+        receivedAllRoute();
     }
 
     private AlertDialog.Builder getDialogProgressBar() {
