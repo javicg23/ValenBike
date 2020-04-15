@@ -3,6 +3,7 @@ package disca.dadm.valenbike.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -14,13 +15,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -42,6 +43,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
@@ -49,7 +52,12 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.maps.android.PolyUtil;
 import com.google.maps.android.clustering.ClusterManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,9 +87,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     public static  final LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
-    public final int ROUTE_MARKER = 0;
-    public final int ROUTE_NONE = 1;
-    public final int ROUTE_STATION = 2;
+    private static final int ROUTE_MARKER = 0;
+    private static final int ROUTE_STATION = 1;
+    public static final String ROUTES_POINTS = "route_points";
+    private static int RECEIVED_STATIONS_NO = 0;
+    private static int RECEIVED_STATIONS_YES = 1;
+
+    // to avoid repetitions petitions to the api when comming from directions
+    private int receivedStations = RECEIVED_STATIONS_NO;
 
     private View rootView;
     private GoogleMap map;
@@ -94,8 +107,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private LatLng lastLocation, stationLatLng;
     private String addressLastLocation, addressSearch, addressStation;
     private boolean receivedMarkerAddress = true, receivedGPSAddress = true, receivedStationAddress = true;
-    private int routeDirections = ROUTE_NONE;
+    private int routeDirections = ROUTE_MARKER;
     private boolean locationActive;
+    private String routeResponse;
+    private List<Polyline> polylinesRoutes = new ArrayList<>();
+    private List<Marker> markerRoutes = new ArrayList<>();
 
     // location attributes
     private FusedLocationProviderClient locationProviderClient;
@@ -156,7 +172,86 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         }
         catch (ClassCastException e)
         {
-            throw new ClassCastException(context.toString()+ " must implement DataPassListener");
+            throw new ClassCastException(context.toString() + " must implement DataPassListener");
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Bundle args = getArguments();
+        if (args != null) {
+            routeResponse = args.getString(ROUTES_POINTS);
+
+            showRoute();
+        }
+    }
+
+    private void showRoute() {
+        // remove marker because we will use another and if he marks another place it doesnt disappear
+        if (routeDirections == ROUTE_MARKER) {
+            markerSearch.remove();
+        }
+
+        //remove previous routes
+        if (markerRoutes.size() > 0) {
+            for (int i = 0; i < markerRoutes.size(); i++) {
+                markerRoutes.get(i).remove();
+            }
+
+            for (int i = 0; i < polylinesRoutes.size(); i++) {
+                polylinesRoutes.get(i).remove();
+            }
+        }
+
+        try {
+            // Parse the response as a JSON object
+            JSONObject object = new JSONObject(routeResponse);
+            // Get the array named "routes"
+            JSONArray routesArray = object.getJSONArray("routes");
+            // The first object of this array contains an "overview_polyline" object
+            JSONObject route = routesArray.getJSONObject(0);
+
+            JSONArray legs = route.getJSONArray("legs");
+
+            // put a marker it start and final
+            // obtain the coordinates
+            JSONObject startLocation = legs.getJSONObject(0).getJSONArray("steps").getJSONObject(0).getJSONObject("start_location");
+            LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
+
+            JSONArray stepsFinal = legs.getJSONObject(legs.length() - 1).getJSONArray("steps");
+            JSONObject endLocation = stepsFinal.getJSONObject(stepsFinal.length() - 1).getJSONObject("end_location");
+            LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
+
+            for (int i = 0; i < legs.length(); i++) {
+                JSONObject legObject = legs.getJSONObject(i);
+                JSONArray steps = legObject.getJSONArray("steps");
+
+                PolylineOptions options = new PolylineOptions().width(12).geodesic(true).clickable(true);
+                for (int j = 0; j < steps.length(); j++) {
+                    JSONObject step = steps.getJSONObject(j);
+                    JSONObject location = step.getJSONObject("start_location");
+                    LatLng position = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
+                    options.add(position);
+                    if (j == steps.length() - 1) {
+                        JSONObject locationEnd = step.getJSONObject("end_location");
+                        LatLng positionEnd = new LatLng(locationEnd.getDouble("lat"), locationEnd.getDouble("lng"));
+                        options.add(positionEnd);
+                    }
+                }
+
+                if (i % 2 == 1) {
+                    options.color(getResources().getColor(R.color.bike_route, null));
+                } else {
+                    options.color(getResources().getColor(R.color.walking_route, null));
+                }
+                polylinesRoutes.add(map.addPolyline(options));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -270,7 +365,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         this.map = googleMap;
 
         // request for stations of valenbisi
-        requestStations(0);
+        if (receivedStations == RECEIVED_STATIONS_NO) {
+            requestStations(0);
+        }
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
@@ -279,6 +376,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
+        map.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+            @Override
+            public void onPolylineClick(Polyline polyline) {
+                showSnackBar(rootView, true, "pulsado linea");
+            }
+        });
         map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -383,8 +486,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 destinationPos = position;
                 destinationAdd = address;
             }
-            dataPassListener.passLocationToDirection(routeDirections, locationPos, locationAdd, destinationPos, destinationAdd);
-            routeDirections = ROUTE_NONE;
+            dataPassListener.passLocationToDirection(locationPos, locationAdd, destinationPos, destinationAdd);
         }
     }
 
@@ -503,15 +605,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     @Override
     public void receivedAllStations(List<Station> stations) {
+        receivedStations = RECEIVED_STATIONS_YES;
         /*todo remove this assignment*/
         stations = getStations();
 
-        // to avoid cluster repetitions
-        map.clear();
-        // if exist marker added again
-        if (markerSearch != null) {
-            setMarkerSearch(markerSearch.getPosition());
-        }
 
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));

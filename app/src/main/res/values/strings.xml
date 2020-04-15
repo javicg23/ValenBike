@@ -61,6 +61,7 @@
     <string name="directions_no_gps_location">Tiene que visualizar su posicion en el mapa para poder acceder a su ubicación</string>
     <string name="directions_no_source_destination">Introduzca los puntos de origen y destino</string>
     <string name="name_station_fragment">Nombre: </string>
+    <string name="directions_route_not_available">No se ha encontrado una ruta</string>
     <string name="adress_station_fragment">Direccion: </string>
     <string name="bikes_station_fragment">Bicicletas disponibles: </string>
     <string name="frees_station_fragment">Huecos disponibles: </string>

@@ -5,4 +5,6 @@
     <color name="colorPrimaryLight">#7a1dff</color>
     <color name="colorAccent">@android:color/holo_orange_dark</color>
     <color name="light_grey">#CFD5D3</color>
+    <color name="walking_route">#336eff</color>
+    <color name="bike_route">#088a00</color>
 </resources>

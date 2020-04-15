@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.Editable;
@@ -36,6 +37,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import org.json.JSONObject;
+
 import java.nio.file.Watchable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,9 +46,12 @@ import java.util.List;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnRouteTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
+import disca.dadm.valenbike.tasks.RouteAsyncTask;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static disca.dadm.valenbike.fragments.MapFragment.LIMIT_MAP;
@@ -53,7 +59,7 @@ import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
-public class DirectionsFragment extends Fragment implements OnPetitionTaskCompleted {
+public class DirectionsFragment extends Fragment implements OnPetitionTaskCompleted, OnRouteTaskCompleted {
 
     public static final String ROUTE = "route";
     public static final String SOURCE_POSITION = "source_position";
@@ -65,15 +71,36 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
     private View rootView;
     private String locationAddress, sourceAddress, destinationAddress;
-    private int routeDirections;
     private LatLng sourcePosition, destinationPosition, sourceStation, destinationStation, locationPosition;
     private List<Station> allStation;
     private AutocompleteSupportFragment autocompleteSearchSource, autocompleteSearchDestination;
+    private DataPassListener dataPassListener;
 
     private EditText sourceText, destinationText;
     private ImageButton swapRouteButton;
     private CheckBox locationCheck;
     private FloatingActionButton fabDirections;
+
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+        // This makes sure that the host activity has implemented the callback interface
+        // If not, it throws an exception
+        try
+        {
+            dataPassListener = (DataPassListener) context;
+        }
+        catch (ClassCastException e)
+        {
+            throw new ClassCastException(context.toString() + " must implement DataPassListener");
+        }
+    }
+
+    public void setDataPassListener(DataPassListener callback) {
+        this.dataPassListener = callback;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,7 +114,6 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
-            routeDirections = args.getInt(ROUTE);
 
             locationAddress = args.getString(SOURCE_ADDRESS);
             sourceText.setText(locationAddress);
@@ -237,7 +263,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                 if (sourceText.getText().toString().trim().equals("") || destinationText.getText().toString().trim().equals("")){
                     showSnackBar(rootView, false, getString(R.string.directions_no_source_destination));
                 } else {
-                    showSnackBar(rootView, false, "buscar ruta");
+                    searchRoute();
                 }
             }
         });
@@ -265,6 +291,24 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
     private void searchRoute() {
 
+        List<LatLng> waypoints = new ArrayList<>();
+        waypoints.add(sourcePosition);
+
+        Station nearestBikeStation = getNearestStationToPosition(NEAREST_BIKE, sourcePosition);
+        LatLng nearestBikePosition = new LatLng(nearestBikeStation.getPosition().getLat(), nearestBikeStation.getPosition().getLng());
+        waypoints.add(nearestBikePosition);
+
+        Station nearestStandStation = getNearestStationToPosition(NEAREST_PARKING, destinationPosition);
+        LatLng nearestStandPosition = new LatLng(nearestStandStation.getPosition().getLat(), nearestStandStation.getPosition().getLng());
+        waypoints.add(nearestStandPosition);
+
+        waypoints.add(destinationPosition);
+
+        if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
+            showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+        } else if (isNetworkConnected(getContext())) {
+            (new RouteAsyncTask(getContext(), this)).execute(waypoints);
+        }
     }
 
     private Station getNearestStationToPosition(boolean type, LatLng latLng) {
@@ -289,5 +333,18 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         }
 
         return nearestStation;
+    }
+
+    @Override
+    public void receivedRoute(String result) {
+
+        // Check that the route was successfully obtained
+        if (result != null) {
+            dataPassListener.passRouteToMap(result);
+        }
+        // If no route was obtained then show a message saying so
+        else {
+            showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+        }
     }
 }

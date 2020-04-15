@@ -67,8 +67,7 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
             builder.appendPath(Integer.toString(numStation));
         }
         builder.appendQueryParameter("contract","valence");
-        /*todo change harcoded api*/
-        builder.appendQueryParameter("apiKey", "826d3b8a1da38c94e235e378d86abdb4802e18f5");
+        builder.appendQueryParameter("apiKey", context.getResources().getString(R.string.jcdecaux_api));
 
         List<Station> stations = null;
         try {

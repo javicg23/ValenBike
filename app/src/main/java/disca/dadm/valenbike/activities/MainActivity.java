@@ -48,10 +48,13 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     @Override
-    public void onAttachFragment(Fragment fragment) {
+    public void onAttachFragment(@NonNull Fragment fragment) {
         if (fragment instanceof MapFragment) {
             MapFragment mapFragment = (MapFragment) fragment;
             mapFragment.setDataPassListener(this);
+        } else if (fragment instanceof DirectionsFragment) {
+            DirectionsFragment directionsFragment = (DirectionsFragment) fragment;
+            directionsFragment.setDataPassListener(this);
         }
     }
 
@@ -136,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         return super.onKeyDown(keyCode, event);
     }
     @Override
-    public void passLocationToDirection(int route, LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
+    public void passLocationToDirection(LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
 
@@ -145,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
 
         Bundle args = new Bundle();
-        args.putInt(DirectionsFragment.ROUTE, route);
         args.putParcelable(DirectionsFragment.SOURCE_POSITION, sourcePosition);
         args.putString(DirectionsFragment.SOURCE_ADDRESS, sourceAddress);
         args.putParcelable(DirectionsFragment.DESTINATION_POSITION, destinationPosition);
@@ -157,6 +159,21 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 .replace(R.id.frameLayout, fragment, TAG_DIRECTIONS)
                 .addToBackStack(TAG_DIRECTIONS)
                 .commit();
+    }
+
+    @Override
+    public void passRouteToMap(String points) {
+
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
+
+        if (fragment == null) {
+            fragment = new MapFragment();
+        }
+
+        Bundle args = new Bundle();
+        args.putString(MapFragment.ROUTES_POINTS, points);
+        fragment.setArguments(args);
+        restoreMapFragmentFromDirections();
     }
 
     private void changeFragment(Fragment fragment, String tag) {
