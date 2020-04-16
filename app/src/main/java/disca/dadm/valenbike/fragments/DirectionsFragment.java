@@ -84,8 +84,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private boolean receivedBike = true;
     private boolean receivedOrigin = true;
     private boolean receivedDestination = true;
-    private boolean receivedWalking = true;
-    private String responseBike, responseOrigin, responseDestination, responseWalking;
+    private String responseBike, responseOrigin, responseDestination;
 
     // loading progress
     private AlertDialog.Builder builder;
@@ -327,12 +326,9 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                     .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_BIKE, nearestBikePosition, nearestStandPosition));
             (new RouteAsyncTask(getContext(), this))
                     .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_DESTINATION, nearestStandPosition, destinationPosition));
-            (new RouteAsyncTask(getContext(), this))
-                    .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_WALKING, sourcePosition, destinationPosition));
             receivedBike = true;
             receivedOrigin = true;
             receivedDestination = true;
-            receivedWalking = true;
         }
     }
 
@@ -361,14 +357,13 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     }
 
     public void receivedAllRoute() {
-        if (receivedOrigin && receivedBike && receivedDestination && receivedWalking) {
+        if (receivedOrigin && receivedBike && receivedDestination) {
             // Check that the route was successfully obtained
-            if (responseOrigin != null && responseBike != null && responseDestination != null && responseWalking != null) {
+            if (responseOrigin != null && responseBike != null && responseDestination != null) {
                 ArrayList<String> responses = new ArrayList<>();
                 responses.add(responseOrigin);
                 responses.add(responseBike);
                 responses.add(responseDestination);
-                responses.add(responseWalking);
 
                 dataPassListener.passRouteToMap(responses);
                 hideProgressDialog();
@@ -398,13 +393,6 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedDestinationRoute(String result) {
         receivedDestination = true;
         responseDestination = result;
-        receivedAllRoute();
-    }
-
-    @Override
-    public void receivedWalkingRoute(String result) {
-        receivedWalking = true;
-        responseWalking = result;
         receivedAllRoute();
     }
 

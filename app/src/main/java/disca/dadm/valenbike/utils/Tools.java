@@ -42,7 +42,7 @@ public class Tools {
         List<Station> stations = new ArrayList<>();
         stations.add(new Station(102, "valence", "", "Ramon Llul - Serpis",
                 new Station.Position(39.47580112282824, -0.346811013895548), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
+                false, 20, 20, 0, "OPEN", 1585552200));
 
         stations.add(new Station(96, "valence", "", "Blasco Ibañez - Yecla",
                 new Station.Position(39.47352211466433, -0.348305017144382), false,
@@ -58,7 +58,7 @@ public class Tools {
 
         stations.add(new Station(258, "valence", "", "Pintor rafael solves",
                 new Station.Position(39.43979598762512, -0.38922812163005), false,
-                false, 20, 0, 20, "OPEN", 1585552200));
+                false, 20, 0, 20, "CLOSED", 1585552200));
 
         stations.add(new Station(257, "valence", "", "Plaza salvador soria",
                 new Station.Position(39.44521900594571, -0.389195124464717), false,

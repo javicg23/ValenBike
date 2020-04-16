@@ -118,9 +118,6 @@ public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String>
             case ParametersRouteTask.ROUTE_DESTINATION:
                 listener.receivedDestinationRoute(result);
                 break;
-            case ParametersRouteTask.ROUTE_WALKING:
-                listener.receivedWalkingRoute(result);
-                break;
         }
     }
 

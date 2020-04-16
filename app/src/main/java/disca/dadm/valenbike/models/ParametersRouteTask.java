@@ -7,7 +7,6 @@ public class ParametersRouteTask {
     public static final int ROUTE_ORIGIN = 0;
     public static final int ROUTE_BIKE = 1;
     public static final int ROUTE_DESTINATION = 2;
-    public static final int ROUTE_WALKING = 3;
 
     private int route;
     private LatLng origin;
