@@ -28,6 +28,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -61,11 +62,16 @@ import com.google.maps.android.clustering.ClusterManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.sql.Time;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
@@ -115,6 +121,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private ArrayList<JSONObject> routeResponses;
     private List<Polyline> polylinesRoutes = new ArrayList<>();
     private List<Marker> markerRoutes = new ArrayList<>();
+    BottomSheetDialog indicationsDialog;
 
     // location attributes
     private FusedLocationProviderClient locationProviderClient;
@@ -188,6 +195,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
+            // pass String to JSONOBject
             ArrayList<String> stringResponses= args.getStringArrayList(ROUTES_RESPONSES);
             try {
                 routeResponses = new ArrayList<>();
@@ -222,28 +230,38 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // put a marker it start and final
         showMarkersRoutes();
 
-        if (isCyclingAvailable()) {
+        // calculate which option es faster in time, and also calculate distance
+        int durationJourney = 0;
+        int distanceJourney = 0;
+        for (int i = 0; i < routeResponses.size() - 1; i++) {
+            durationJourney += getLocalDurationTimeRouteBy(routeResponses.get(i),"duration");
+            distanceJourney += getLocalDurationTimeRouteBy(routeResponses.get(i),"distance");
+        }
+        int durationWalking = getLocalDurationTimeRouteBy(routeResponses.get(routeResponses.size() - 1), "duration");
+        int distanceWalking = getLocalDurationTimeRouteBy(routeResponses.get(routeResponses.size() - 1), "distance");
+        boolean cyclingAvailable = durationJourney < durationWalking;
+
+        int duration = durationJourney;
+        int distance = distanceJourney;
+        // show polyline route
+        if (cyclingAvailable) {
             showBikeRoute();
         } else {
             showWalkRoute();
+            duration = durationWalking;
+            distance = distanceWalking;
         }
+
+        // created bottom sheet modal with indications
+        createdIndicationsRoute(cyclingAvailable, duration, distance);
 
     }
 
-    private boolean isCyclingAvailable() {
-        int durationJourney = 0;
-        for (int i = 0; i < routeResponses.size() - 1; i++) {
-            durationJourney += getLocalDurationRoute(routeResponses.get(i));
-        }
-        int durationWalking = getLocalDurationRoute(routeResponses.get(routeResponses.size() - 1));
-        return durationJourney < durationWalking;
-    }
-
-    private int getLocalDurationRoute(JSONObject object) {
+    private int getLocalDurationTimeRouteBy(JSONObject object, String mode) {
         int duration = 0;
         // Parse the response as a JSON object
         try {
-            duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
+            duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject(mode).getInt("value");
             return duration;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -282,16 +300,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private void showMarkersRoutes() {
         try {
             JSONObject startLocation = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
-                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0)
-                    .getJSONArray("steps").getJSONObject(0).getJSONObject("start_location");
+                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("start_location");
 
             LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
             markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
 
-            JSONArray stepsFinal = routeResponses.get(routeResponses.size() - 1)
+            JSONObject endLocation = routeResponses.get(routeResponses.size() - 1)
                     .getJSONArray("routes").getJSONObject(0)
-                    .getJSONArray("legs").getJSONObject(0).getJSONArray("steps");
-            JSONObject endLocation = stepsFinal.getJSONObject(stepsFinal.length() - 1).getJSONObject("end_location");
+                    .getJSONArray("legs").getJSONObject(0).getJSONObject("end_location");
             LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
             markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
         } catch (JSONException e) {
@@ -307,6 +323,57 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             options.color(getResources().getColor(R.color.walking_route, null));
         }
         polylinesRoutes.add(map.addPolyline(options));
+    }
+
+    private void createdIndicationsRoute(boolean cyclingAvailable, int duration, int distance) {
+        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
+        indicationsDialog = new BottomSheetDialog(getActivity());
+        TextView durationText = dialogView.findViewById(R.id.indicationsDuration);
+        TextView distanceText = dialogView.findViewById(R.id.indicationsDistance);
+        RecyclerView recyclerView = dialogView.findViewById(R.id.mapIndicationsRecyclerView);
+
+        // formated distance and duration to kilometers and minutes
+        int durationMin = duration / 60;
+        double distanceKm = (double) distance / 1000;
+        DecimalFormat dfDistance = new DecimalFormat("0.0");
+        String formattedDistance = dfDistance.format(distanceKm);
+
+        durationText.setText(String.valueOf(durationMin));
+        distanceText.setText("(" + formattedDistance);
+
+        setGeneralDataIndicationsRoutes(dialogView, cyclingAvailable);
+
+        indicationsDialog.setContentView(dialogView);
+
+        //LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
+        //moveCamera(position, CAMERA_ZOOM_STREET);
+        indicationsDialog.show();
+
+    }
+
+    private void setGeneralDataIndicationsRoutes(View dialogView, boolean cycling) {
+        TextView source = dialogView.findViewById(R.id.indicationsSource);
+        TextView destination = dialogView.findViewById(R.id.indicationsDestination);
+        ImageView imageMode = dialogView.findViewById(R.id.indicationsMode);
+
+        if (!cycling) {
+            imageMode.setBackground(getResources().getDrawable(R.drawable.ic_directions_walk_primary_24dp, null));
+        } else {
+
+        }
+
+        try {
+            // obtain start address
+            String startAddress = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
+                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getString("start_address");
+            source.setText(startAddress);
+
+            String endAddress = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
+                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getString("end_address");
+            destination.setText(endAddress);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setDataPassListener(DataPassListener callback) {
@@ -433,7 +500,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         map.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
-                showSnackBar(rootView, true, "pulsado linea");
+                if (indicationsDialog != null) {
+                    indicationsDialog.show();
+                }
             }
         });
         map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
