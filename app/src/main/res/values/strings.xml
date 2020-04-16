@@ -75,6 +75,8 @@
     <string name="sheet_station_hours">horas</string>
     <string name="sheet_station_directions">Como llegar</string>
     <string name="sheet_station_closed">Cerrada temporalmente</string>
+    <string name="sheet_indication_duration"> min</string>
+    <string name="sheet_indication_distance"> km</string>
     <string name="directions_source">Origen</string>
     <string name="directions_destination">Destino</string>
     <string name="jcdecaux_api">826d3b8a1da38c94e235e378d86abdb4802e18f5</string>

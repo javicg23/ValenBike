@@ -21,26 +21,26 @@
             android:id="@+id/indicationsDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="40"
             android:textColor="@color/colorAccent"
             android:textSize="30sp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" min"
+            android:text="@string/sheet_indication_duration"
             android:textColor="@color/colorAccent"
             android:textSize="30sp"
+            android:layout_marginStart="4dp"
             android:layout_marginEnd="10dp"/>
         <TextView
             android:id="@+id/indicationsDistance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="(8.1"
             android:textSize="30sp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" km)"
+            android:layout_marginStart="4dp"
+            android:text="@string/sheet_indication_distance"
             android:textSize="30sp"/>
     </LinearLayout>
     <LinearLayout

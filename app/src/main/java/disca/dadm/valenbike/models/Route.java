@@ -1,6 +1,8 @@
 package disca.dadm.valenbike.models;
 
-public class Indications {
+import org.json.JSONArray;
+
+public class Route {
     public static final int MODE_BIKE = 0;
     public static final int MODE_WALK = 1;
 
@@ -8,11 +10,11 @@ public class Indications {
     private String address;
     private String duration;
     private String distance;
-    private String indications;
+    private JSONArray indications;
     private boolean expanded;
     private boolean arrowDown;
 
-    public Indications(int mode, String address, String duration, String distance, String indications) {
+    public Route(int mode, String address, String duration, String distance, JSONArray indications) {
         this.mode = mode;
         this.address = address;
         this.duration = duration;
@@ -54,11 +56,11 @@ public class Indications {
         this.distance = distance;
     }
 
-    public String getIndications() {
+    public JSONArray getIndications() {
         return indications;
     }
 
-    public void setIndications(String indications) {
+    public void setIndications(JSONArray indications) {
         this.indications = indications;
     }
 

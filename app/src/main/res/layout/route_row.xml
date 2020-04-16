@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="8dp">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/dividir"/>
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:cardElevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -19,10 +25,9 @@
                 android:id="@+id/indicationsCardMode"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@drawable/ic_directions_walk_primary_24dp"
-                app:layout_constraintBottom_toTopOf="@+id/expandableLayout"
+                app:layout_constraintBottom_toTopOf="@+id/indicationsExpandableLayout"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
 
             <TextView
@@ -33,7 +38,6 @@
                 android:layout_marginStart="17dp"
                 android:layout_marginEnd="17dp"
                 android:background="?attr/selectableItemBackground"
-                android:text="Plaza Honduras españa valencia"
                 app:layout_constraintEnd_toStartOf="@+id/indicationsCardDistance"
                 app:layout_constraintStart_toEndOf="@+id/indicationsCardMode"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -44,8 +48,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:text="5"
                 android:textColor="@color/quantum_googgreen"
+                android:layout_marginEnd="4dp"
                 app:layout_constraintEnd_toStartOf="@+id/textView4"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -55,7 +59,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:text=" min"
+                android:text="@string/sheet_indication_duration"
                 android:textColor="@color/quantum_googgreen"
                 app:layout_constraintEnd_toStartOf="@+id/indicationsCardArrow"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -66,8 +70,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
                 android:background="?attr/selectableItemBackground"
-                android:text="0,2"
                 app:layout_constraintEnd_toStartOf="@+id/textView6"
                 app:layout_constraintTop_toBottomOf="@+id/indicationsCardDuration" />
 
@@ -77,7 +81,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:text=" km"
+                android:text="@string/sheet_indication_distance"
                 android:layout_marginTop="8dp"
                 app:layout_constraintEnd_toStartOf="@+id/indicationsCardArrow"
                 app:layout_constraintTop_toBottomOf="@+id/textView4" />
@@ -102,16 +106,13 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/indicationsCardArrow">
 
-                <TextView
-                    android:id="@+id/indicationsBody"
-                    style="@style/TextAppearance.AppCompat.Medium"
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/specifiedIndicationsRecyclerView"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:justificationMode="inter_word"
-                    android:text=""
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:ignore="UnusedAttribute" />
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

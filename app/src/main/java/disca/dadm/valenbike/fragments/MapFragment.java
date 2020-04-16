@@ -71,16 +71,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.adapters.IndicationsAdapter;
+import disca.dadm.valenbike.adapters.RouteAdapter;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
-import disca.dadm.valenbike.models.Indications;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
+import disca.dadm.valenbike.models.Route;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
@@ -201,8 +202,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             ArrayList<String> stringResponses= args.getStringArrayList(ROUTES_RESPONSES);
             try {
                 routeResponses = new ArrayList<>();
-                for (int i = 0; i < stringResponses.size(); i++) {
-                    routeResponses.add(new JSONObject(stringResponses.get(i)));
+                if (stringResponses != null) {
+                    for (int i = 0; i < stringResponses.size(); i++) {
+                        routeResponses.add(new JSONObject(stringResponses.get(i)));
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -306,22 +309,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void createdIndicationsRoute() {
         View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
-        indicationsDialog = new BottomSheetDialog(getActivity());
+        indicationsDialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
 
-        setGeneralDataIndicationsRoutes(dialogView);;
+        setGeneralDataIndicationsRoutes(dialogView);
 
-        initIndicationsDataRecycler(dialogView);
+        initRouteDataRecycler(dialogView);
 
         indicationsDialog.setContentView(dialogView);
-        //LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
-        //moveCamera(position, CAMERA_ZOOM_STREET);
         indicationsDialog.show();
     }
 
-    private void initIndicationsDataRecycler(View dialogView) {
+    private void initRouteDataRecycler(View dialogView) {
         RecyclerView recyclerView = dialogView.findViewById(R.id.mapIndicationsRecyclerView);
 
-        List<Indications> indications = new ArrayList<>();
+        List<Route> routes = new ArrayList<>();
         for (int i = 0; i < routeResponses.size(); i++) {
             String address = getStartAddess(i);
             // foramted from seconds to minutes
@@ -332,15 +333,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             DecimalFormat dfDistance = new DecimalFormat("0.0");
             String formattedDistance = dfDistance.format(distanceKm);
 
-            int mode = Indications.MODE_WALK;
+            int mode = Route.MODE_WALK;
             if (i % 2 ==1) {
-                mode = Indications.MODE_BIKE;
+                mode = Route.MODE_BIKE;
             }
-            Indications indicat = new Indications(mode, address, duration, formattedDistance, getString(R.string.cardview_faq_body1));
-            indications.add(indicat);
+            // obtain steps
+            JSONArray steps = null;
+            try {
+
+                steps = routeResponses.get(i)
+                        .getJSONArray("routes").getJSONObject(0)
+                        .getJSONArray("legs").getJSONObject(0)
+                        .getJSONArray("steps");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Route route = new Route(mode, address, duration, formattedDistance, steps);
+            routes.add(route);
         }
-        IndicationsAdapter indicationsAdapter = new IndicationsAdapter(indications);
-        recyclerView.setAdapter(indicationsAdapter);
+        RouteAdapter routeAdapter = new RouteAdapter(routes);
+        recyclerView.setAdapter(routeAdapter);
     }
 
 
@@ -361,8 +375,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // formatted distance to kilometers with one decimal
         double distanceKm = (double) distanceJourney / 1000;
         DecimalFormat dfDistance = new DecimalFormat("0.0");
-        String formattedDistance = dfDistance.format(distanceKm);
-        return formattedDistance;
+        return dfDistance.format(distanceKm);
 
     }
 
@@ -374,7 +387,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
         // calculate duration in minutes and distance in kilometers
         durationText.setText(getGloblalDurationRoute());
-        distanceText.setText("(" + getGlobalDistanceRoute());
+        distanceText.setText(getGlobalDistanceRoute());
 
         try {
             // obtain start address
@@ -444,7 +457,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         }
 
         callback = new MyGoogleLocationCallback();
-        locationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
 
         request = new LocationRequest();
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -469,7 +482,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private boolean isLocationPermissionGranted(boolean request) {
 
         // Determine whether the user has granted that particular permission
-        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.ACCESS_FINE_LOCATION)) {
             return true;
         }
         // If not, display an activity to request that permission
@@ -604,7 +617,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     // depends on the location put the res in addressLastLocation or addressSearch
     private void coordinatesToAddress(int location, LatLng latLng) {
         // Start asynchronous task to translate coordinates into an address
-        if (isNetworkConnected(getContext())) {
+        if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
             (new GeocoderAsyncTask(getContext(), MapFragment.this)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
         }
     }
@@ -718,7 +731,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void initSearch() {
-        Places.initialize(getContext(), getString(R.string.google_maps_key));
+        Places.initialize(Objects.requireNonNull(getContext()), getString(R.string.google_maps_key));
 
         // Specify the types of place data to return, country and limit in the map
         autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG));
@@ -744,7 +757,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void requestStations(int number) {
         showProgressDialog();
-        if (isNetworkConnected(getContext())){
+        if (isNetworkConnected(Objects.requireNonNull(getContext()))){
             requestInProgress = true;
             PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
             petitionAsyncTask.execute(number);
@@ -763,7 +776,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         stations = getStations();
 
 
-        ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(getActivity(), map);
+        ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(Objects.requireNonNull(getActivity()), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
         map.setOnCameraIdleListener(clusterManager);
         List<ClusterStation> items = new ArrayList<>();
@@ -784,7 +797,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     @Override
     public void receivedStation(Station station) {
         View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
-        BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
+        BottomSheetDialog dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
         initDialogStation(dialog, dialogView, station);
         dialog.setContentView(dialogView);
         LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
