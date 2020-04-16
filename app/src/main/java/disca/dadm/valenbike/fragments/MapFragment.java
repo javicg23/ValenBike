@@ -74,10 +74,12 @@ import java.util.List;
 import java.util.TimeZone;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.adapters.IndicationsAdapter;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
+import disca.dadm.valenbike.models.Indications;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
@@ -305,16 +307,42 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private void createdIndicationsRoute() {
         View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
         indicationsDialog = new BottomSheetDialog(getActivity());
-        RecyclerView recyclerView = dialogView.findViewById(R.id.mapIndicationsRecyclerView);
 
-        setGeneralDataIndicationsRoutes(dialogView);
+        setGeneralDataIndicationsRoutes(dialogView);;
+
+        initIndicationsDataRecycler(dialogView);
 
         indicationsDialog.setContentView(dialogView);
-
         //LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
         //moveCamera(position, CAMERA_ZOOM_STREET);
         indicationsDialog.show();
     }
+
+    private void initIndicationsDataRecycler(View dialogView) {
+        RecyclerView recyclerView = dialogView.findViewById(R.id.mapIndicationsRecyclerView);
+
+        List<Indications> indications = new ArrayList<>();
+        for (int i = 0; i < routeResponses.size(); i++) {
+            String address = getStartAddess(i);
+            // foramted from seconds to minutes
+            String duration = String.valueOf(getLocalDurationTimeRouteBy(routeResponses.get(i), "duration") / 60);
+            int distance = getLocalDurationTimeRouteBy(routeResponses.get(i), "distance");
+            // formatted distance to kilometers with one decimal
+            double distanceKm = (double) distance / 1000;
+            DecimalFormat dfDistance = new DecimalFormat("0.0");
+            String formattedDistance = dfDistance.format(distanceKm);
+
+            int mode = Indications.MODE_WALK;
+            if (i % 2 ==1) {
+                mode = Indications.MODE_BIKE;
+            }
+            Indications indicat = new Indications(mode, address, duration, formattedDistance, getString(R.string.cardview_faq_body1));
+            indications.add(indicat);
+        }
+        IndicationsAdapter indicationsAdapter = new IndicationsAdapter(indications);
+        recyclerView.setAdapter(indicationsAdapter);
+    }
+
 
     private String getGloblalDurationRoute() {
         int durationJourney = 0;
@@ -350,9 +378,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
         try {
             // obtain start address
-            String startAddress = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
-                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getString("start_address");
-            source.setText(startAddress);
+            source.setText(getStartAddess(0));
 
             // obtain end address
             String endAddress = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
@@ -361,6 +387,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getStartAddess(int indexResponse) {
+        String startAddress = "";
+        // obtain start address
+        try {
+
+            startAddress = routeResponses.get(indexResponse).getJSONArray("routes")
+                    .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getString("start_address");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return startAddress;
     }
 
     public void setDataPassListener(DataPassListener callback) {
