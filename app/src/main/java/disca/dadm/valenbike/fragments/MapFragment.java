@@ -531,7 +531,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
-        *  en vez de meterlo directmanete en numero fijo*/
+         *  en vez de meterlo directmanete en numero fijo*/
         map.setPadding(0,170,0,0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
@@ -731,7 +731,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void initSearch() {
-        Places.initialize(Objects.requireNonNull(getContext()), getString(R.string.google_maps_key));
+        Places.initialize(Objects.requireNonNull(getContext()), getString(R.string.maps_api_key));
 
         // Specify the types of place data to return, country and limit in the map
         autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG));

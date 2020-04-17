@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey;
 
 
 @Entity(tableName = "station")
-public class Stations {
+public class Station {
 
     @PrimaryKey
     @NonNull
@@ -25,18 +25,21 @@ public class Stations {
     @ColumnInfo(name = "is_favourite")
     protected boolean isFavourite;
 
-    protected boolean notify;
+    protected boolean notifyBikes;
+    protected boolean notifyGaps;
 
-    public Stations(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notify) {
+    public Station(String name, String address, int numBikes, int numGaps, boolean favourite, boolean notifyBikes, boolean notifyGaps) {
+        //this.number = number;
         this.name = name;
         this.address = address;
         this.numFreeBikes = numBikes;
         this.numFreeGaps = numGaps;
         this.isFavourite = favourite;
-        this.notify = notify;
+        this.notifyBikes = notifyBikes;
+        this.notifyGaps = notifyGaps;
     }
 
-    public Stations() {}
+    public Station() {}
 
     public String getName() { return this.name; }
     public void setName(String name) { this.name = name; }
@@ -53,6 +56,9 @@ public class Stations {
     public boolean isFavourite() { return this.isFavourite; }
     public void setFavourite(boolean fav) { this.isFavourite = fav; }
 
-    public boolean getNotify() { return this.notify; }
-    public void setNotify(boolean notify) { this.notify = notify; }
+    public boolean getNotifyBikes() { return this.notifyBikes; }
+    public void setNotifyBikes(boolean notifyBikes) { this.notifyBikes = notifyBikes; }
+
+    public boolean getNotifyGaps() { return this.notifyGaps; }
+    public void setNotifyGaps(boolean notifyGaps) { this.notifyGaps = notifyGaps; }
 }

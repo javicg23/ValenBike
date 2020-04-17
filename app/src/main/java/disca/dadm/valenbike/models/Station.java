@@ -29,6 +29,9 @@ public class Station {
         this.lastUpdate = lastUpdate;
     }
 
+    public Station() {
+    }
+
     public int getNumber() {
         return number;
     }
@@ -125,34 +128,11 @@ public class Station {
         this.lastUpdate = value;
     }
 
-    public boolean isActive(){
+    public boolean isActive() {
         return status.equals("OPEN");
     }
 
 
-    public static class Position {
-        private double lat;
-        private double lng;
-
-        public Position(double lat, double lng) {
-            this.lat = lat;
-            this.lng = lng;
-        }
-
-        public double getLat() {
-            return lat;
-        }
-
-        public void setLat(double value) {
-            this.lat = value;
-        }
-
-        public double getLng() {
-            return lng;
-        }
-
-        public void setLng(double value) {
-            this.lng = value;
-        }
-    }
 }
+
+
