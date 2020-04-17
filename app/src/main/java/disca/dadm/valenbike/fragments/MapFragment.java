@@ -308,7 +308,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
 
     private void createdIndicationsRoute() {
-        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
+        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         indicationsDialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
 
         setGeneralDataIndicationsRoutes(dialogView);

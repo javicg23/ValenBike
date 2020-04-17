@@ -52,8 +52,10 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
         holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
         holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
+
         // TODO: Implementar calculo de distancia desde la posicion actual hasta la estacion.
         //holder.distance.setText(stationGUI.getTime());
+        
         holder.address.setText(stationGUI.getAddress());
 
         long now = new Date().getTime();
@@ -108,6 +110,29 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                     changeExpandibleLayout();
                 }
             });
+
+            favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+                    } else {
+                        favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+                    }
+                }
+            });
+
+            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked){
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                    } else {
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                    }
+                }
+            });
+
         }
         private void changeExpandibleLayout() {
             StationGUI station = stationsList.get(getAdapterPosition());
@@ -117,48 +142,3 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         }
     }
 }
-
-//if (getItemCount() > 0 && position < getItemCount()) {
-//        Log.d("COMENTARIOS", "Hay mas de un elemento en stationsList");
-//        holder.tvStationNum.setText(String.valueOf(station.getNumber()));
-//
-//        boolean isExpanded = stationsList.get(position).isExpanded();
-//        TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
-//        holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-//        boolean isArrowDown = stationsList.get(position).isExpanded();
-//        holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
-//
-//        TextView address = (TextView) holder.expandableLayout.getViewById(R.id.tvAddress);
-//        //address.setText(station.getAddress());
-//
-//        TextView numBikes = (TextView) holder.expandableLayout.getViewById(R.id.tvNumFreeBikes);
-//        //Log.d("COMENTARIOS", String.valueOf(station.getAvailableBikes()));
-//        //numBikes.setText(String.valueOf(station.getAvailableBikes()));
-//
-//        TextView numGaps = (TextView) holder.expandableLayout.getViewById(R.id.tvNumFreeGaps);
-////numGaps.setText(String.valueOf(station.getAvailableBikeStands()));
-//
-//final CheckBox favourite = (CheckBox) holder.expandableLayout.getViewById(R.id.sheetFavourite);
-//        favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//@Override
-//public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//        if (isChecked){
-//        favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
-//        } else {
-//        favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
-//        }
-//        }
-//        });
-//
-//final CheckBox reminder = (CheckBox) holder.expandableLayout.getViewById(R.id.sheetReminder);
-//        reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//@Override
-//public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//        if (isChecked){
-//        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-//        } else {
-//        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
-//        }
-//        }
-//        });
-//        }
