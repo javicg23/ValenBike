@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">ValenBike</string>
-    <string name="maps_api_key">AIzaSyD19z-68T6MRVwWgr1y19yzLr0P1FkF8mg</string>
     <string name="jcdecaux_api">826d3b8a1da38c94e235e378d86abdb4802e18f5</string>
     <string name="bottom_menu_map">Mapa</string>
     <string name="bottom_menu_stations">Estaciones</string>

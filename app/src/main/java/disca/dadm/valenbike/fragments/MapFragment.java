@@ -117,7 +117,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private View rootView;
     private GoogleMap map;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
-    private FloatingActionButton fabMapType, fabDirections, fabLocation;
+    private FloatingActionButton fabMapType, fabDirections, fabLocation, fabClear;
     private AutocompleteSupportFragment autocompleteSearch;
     private PopupMenu popup;
     // route and direction
@@ -162,6 +162,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
+        fabClear = rootView.findViewById(R.id.fabClear);
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
         progressDialog = getDialogProgressBar().create();
 
@@ -222,9 +223,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void showRoute() {
         // remove marker because we will use another and if he marks another place it doesnt disappear
-        if (routeDirections == ROUTE_MARKER && markerSearch != null) {
-            markerSearch.remove();
-        }
+        clearMap();
 
         //remove previous routes
         if (polylinesRoutes.size() > 0) {
@@ -459,6 +458,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             }
         });
+
+        fabClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearMap();
+            }
+        });
+    }
+
+    private void clearMap() {
+        if (markerSearch != null) {
+            markerSearch.remove();
+        }
+        for (int i = 0; i < markerRoutes.size(); i++) {
+            markerRoutes.get(i).remove();
+        }
+        for (int i = 0; i < polylinesRoutes.size(); i++) {
+            polylinesRoutes.get(i).remove();
+        }
     }
 
     private void initMapAndLocation() {

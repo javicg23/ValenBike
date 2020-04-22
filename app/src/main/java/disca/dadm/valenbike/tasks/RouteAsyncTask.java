@@ -4,30 +4,16 @@
 
 package disca.dadm.valenbike.tasks;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.JsonObject;
-import com.google.maps.android.PolyUtil;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -40,6 +26,7 @@ import disca.dadm.valenbike.models.ParametersRouteTask;
 public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String> {
 
     private OnRouteTaskCompleted listener;
+    @SuppressLint("StaticFieldLeak")
     private Context context;
     private int route;
 
@@ -76,7 +63,7 @@ public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String>
         builder.appendQueryParameter("mode", mode);
         builder.appendQueryParameter("language","es");
         builder.appendQueryParameter("units","metric");
-        builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_key));
+        builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_directions_key));
         try {
             // Launch the related GET request
             URL url = new URL(builder.build().toString());
@@ -96,8 +83,6 @@ public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String>
                 result = response.toString();
             }
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
