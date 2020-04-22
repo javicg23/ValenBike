@@ -14,17 +14,23 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
 //import disca.dadm.valenbike.adapters.StationsAdapter;
-//import disca.dadm.valenbike.models.StationGUI;
+import disca.dadm.valenbike.adapters.StationsAdapter;
+import disca.dadm.valenbike.models.Position;
+import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
+import disca.dadm.valenbike.utils.Tools;
+import disca.dadm.valenbike.utils.test;
 //import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 public class StationsFragment extends Fragment {
 
     private RecyclerView recyclerView;
-//    private List<StationGUI> stationsList;
+    private List<StationGUI> stationsList;
 
 //    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
 
@@ -51,7 +57,7 @@ public class StationsFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewStations);
 
         //startNewAsyncTask();
-        initData();
+        //initData();
         initRecyclerView();
 
         return view;
@@ -70,10 +76,9 @@ public class StationsFragment extends Fragment {
                 // Show check menu to select filter options
                 AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
                 builder.setTitle(R.string.selection_filter_menu_station);
-                //CharSequence[] options = new CharSequence[]{R.string.fav_filter_menu_station, R.string.notify_filter_menu_station};
                 final String[] options = new String[]{
                         "Estaciones favoritas",
-                        "Estciones con avisos"
+                        "Estaciones con notificaciones"
                 };
                 final boolean[] checkedOptions = new boolean[] {
                         false,
@@ -114,30 +119,35 @@ public class StationsFragment extends Fragment {
 //        task.execute();
 //    }
 
-    public void initData(/*List<disca.dadm.valenbike.database.Station> dbStations*/) {
+    public void initData() {
+        // DEBUG without API data.
+//        List <Station> stationsApi = Tools.getStations();
+//
+//        for(int i = 0; i < stationsApi.size(); i++) {
+//            Station station = stationsApi.get(i);
+//            int number = station.getNumber();
+//            String contractName = station.getContractName();
+//            String name = station.getName();
+//            String address = station.getAddress();
+//            Position pos = station.getPosition();
+//            boolean banking = station.getBanking();
+//            boolean bonus = station.getBonus();
+//            int bikeStands = station.getBikeStands();
+//            int availableBikeStands = station.getAvailableBikeStands();
+//            int availableBikes = station.getAvailableBikes();
+//            String status = station.getStatus();
+//            long lastUpdate = station.getLastUpdate();
+//
+//            StationGUI stationGui = new StationGUI(number, contractName, name, address, pos, banking, bonus, bikeStands, availableBikeStands, availableBikes, status, lastUpdate);
+//            stationsList.add(stationGui);
+//        }
 
-        /*if (dbStations != null) {
-            for (int i = 0; i < dbStations.size(); i++) {
-                Station newStation = new Station(
-                        dbStations.get(i).getName(),
-                        dbStations.get(i).getAddress(),
-                        dbStations.get(i).getNumFreeBikes(),
-                        dbStations.get(i).getNumFreeGaps(),
-                        dbStations.get(i).isFavourite(),
-                        dbStations.get(i).getNotify()
-                );
-                stationsList.add(newStation);
-            }
-        } else {*/
-            // DEBUG without API data.
-            //stationsList = disca.dadm.valenbike.test.getStationList();
-        /*}
-
-        initRecyclerView();*/
+        //initRecyclerView();
     }
 
     private void initRecyclerView() {
-        //StationsAdapter stationsAdapter = new StationsAdapter(stationsList);
-        //recyclerView.setAdapter(stationsAdapter);
+        stationsList = Tools.getStationsGui();
+        StationsAdapter stationsAdapter = new StationsAdapter(stationsList);
+        recyclerView.setAdapter(stationsAdapter);
     }
 }

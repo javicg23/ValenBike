@@ -547,7 +547,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
-        *  en vez de meterlo directmanete en numero fijo*/
+        *  en vez de meterlo directamente en numero fijo*/
         map.setPadding(0,170,0,0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);

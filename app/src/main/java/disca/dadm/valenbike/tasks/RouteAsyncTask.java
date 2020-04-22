@@ -76,7 +76,7 @@ public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String>
         builder.appendQueryParameter("mode", mode);
         builder.appendQueryParameter("language","es");
         builder.appendQueryParameter("units","metric");
-        builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_directions_key));
+        builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_key));
         try {
             // Launch the related GET request
             URL url = new URL(builder.build().toString());

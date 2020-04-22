@@ -17,7 +17,7 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/tvStationTitle"
+                android:id="@+id/tvStationNum"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
@@ -36,7 +36,7 @@
                 android:contentDescription="@string/app_name"
                 android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tvStationTitle"
+                app:layout_constraintStart_toEndOf="@+id/tvStationNum"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -47,7 +47,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvStationTitle">
+                app:layout_constraintTop_toBottomOf="@id/tvStationNum">
 
                 <TextView
                     android:id="@+id/tvBody"

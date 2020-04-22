@@ -62,7 +62,7 @@ public class InformationAdapter extends RecyclerView.Adapter<InformationAdapter.
         public InformationViewHolder(@NonNull final View itemView) {
             super(itemView);
             expandableLayout = itemView.findViewById(R.id.expandableLayout);
-            tvTitle = itemView.findViewById(R.id.tvStationTitle);
+            tvTitle = itemView.findViewById(R.id.tvStationNum);
             tvBody = itemView.findViewById(R.id.tvBody);
             ivArrow = itemView.findViewById(R.id.ivArrow);
 
