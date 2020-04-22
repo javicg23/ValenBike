@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -308,7 +309,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
 
     private void createdIndicationsRoute() {
-        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
+        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
         indicationsDialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
 
         setGeneralDataIndicationsRoutes(dialogView);
@@ -641,8 +642,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             LatLng destinationPos = null;
             String destinationAdd = "";
             if (locationActive && lastLocation != null) {
-                locationPos = lastLocation;
-                locationAdd = addressLastLocation;
+                if (checkLimitBounds(lastLocation)) {
+                    locationPos = lastLocation;
+                    locationAdd = addressLastLocation;
+                } else {
+                    showSnackBar(rootView, false, getString(R.string.map_location_out_bounds));
+                }
             }
             if (position != null) {
                 destinationPos = position;
@@ -796,7 +801,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     @Override
     public void receivedStation(Station station) {
-        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         BottomSheetDialog dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
         initDialogStation(dialog, dialogView, station);
         dialog.setContentView(dialogView);
