@@ -373,6 +373,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         // If no route was obtained then show a message saying so
         else {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+            errorResponse = false;
         }
         hideProgressDialog();
     }
@@ -381,7 +382,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedOriginRoute(String result) {
         receivedOrigin = true;
         responseOrigin = result;
-        errorResponse = checkResponse(result);
+        checkResponse(result);
         receivedAllRoute();
     }
 
@@ -389,7 +390,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedBikeRoute(String result) {
         receivedBike = true;
         responseBike = result;
-        errorResponse = checkResponse(result);
+        checkResponse(result);
         receivedAllRoute();
     }
 
@@ -397,19 +398,20 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedDestinationRoute(String result) {
         receivedDestination = true;
         responseDestination = result;
-        errorResponse = checkResponse(result);
+        checkResponse(result);
         receivedAllRoute();
     }
 
-    private boolean checkResponse(String result) {
-        boolean error = false;
+    private void checkResponse(String result) {
         try {
             JSONObject jsonObject = new JSONObject(result);
-            error = null != jsonObject.optString("error_message", null);
+            boolean error = null != jsonObject.optString("error_message", null);
+            if (error) {
+                errorResponse = true;
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return error;
     }
 
     private AlertDialog.Builder getDialogProgressBar() {
