@@ -7,4 +7,5 @@
     <color name="light_grey">#CFD5D3</color>
     <color name="walking_route">#336eff</color>
     <color name="bike_route">#088a00</color>
+    <color name="violet">#730099</color>
 </resources>

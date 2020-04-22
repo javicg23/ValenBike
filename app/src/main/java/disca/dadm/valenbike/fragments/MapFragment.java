@@ -6,7 +6,10 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -43,6 +46,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -88,6 +92,7 @@ import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
+import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
@@ -212,7 +217,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 e.printStackTrace();
             }
 
-            showRoute();
         }
     }
 
@@ -295,13 +299,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                     .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("start_location");
 
             LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
+
+            Drawable drawable = getResources().getDrawable(R.drawable.marker_a, null);
+            BitmapDescriptor markerIcon = getMarkerIconFromDrawable(drawable);
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition).icon(markerIcon)));
 
             JSONObject endLocation = routeResponses.get(routeResponses.size() - 1)
                     .getJSONArray("routes").getJSONObject(0)
                     .getJSONArray("legs").getJSONObject(0).getJSONObject("end_location");
             LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
+
+            drawable = getResources().getDrawable(R.drawable.marker_b, null);
+            markerIcon = getMarkerIconFromDrawable(drawable);
+
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition).icon(markerIcon)));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -528,6 +539,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // request for stations of valenbisi
         if (receivedStations == RECEIVED_STATIONS_NO) {
             requestStations(0);
+        }
+        // show route if available
+        if (routeResponses != null && routeResponses.size() != 0) {
+            showRoute();
         }
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
@@ -761,8 +776,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void requestStations(int number) {
-        showProgressDialog();
         if (isNetworkConnected(Objects.requireNonNull(getContext()))){
+            showProgressDialog();
             requestInProgress = true;
             PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
             petitionAsyncTask.execute(number);
@@ -828,8 +843,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         numberStation.setText(String.valueOf(station.getNumber()));
         address.setText(station.getAddress());
 
-        /*todo change this to if(station.isActive()), it's because there are all stations closed*/
-        if (!station.isActive()){
+        if (station.isActive()){
             bikes.setText(String.valueOf(station.getAvailableBikes()));
             stands.setText(String.valueOf(station.getAvailableBikeStands()));
 

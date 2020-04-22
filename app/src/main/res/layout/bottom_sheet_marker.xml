@@ -28,9 +28,9 @@
                 android:layout_height="25dp"
                 android:layout_gravity="center"
                 app:srcCompat="@drawable/ic_bike_station_number"
-                android:layout_marginRight="7dp"/>
+                android:layout_marginEnd="7dp"/>
             <View
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
             <TextView
@@ -45,7 +45,7 @@
         </LinearLayout>
 
         <View
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
         <CheckBox
@@ -112,7 +112,7 @@
             android:text="" />
 
         <View
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
         <ImageView
@@ -144,9 +144,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/button_rounded"
-            android:backgroundTint="@android:color/holo_red_light"
-            android:text="Estación cerrada"
-            android:textColor="@android:color/black"
+            android:backgroundTint="@color/violet"
+            android:text="@string/sheet_station_closed"
+            android:textColor="@android:color/white"
             android:clickable="false"
             android:layout_marginBottom="16dp"
             />
@@ -165,13 +165,13 @@
             android:id="@+id/sheetLastUpdate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="5dp"/>
+            android:layout_marginEnd="5dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sheet_station_hours"/>
         <View
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
         <ImageView
