@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.fragments.DirectionsFragment;
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         navigationView.setOnNavigationItemSelectedListener(this);
 
         // Display the Stations title on the ActionBar
-        getSupportActionBar().setTitle(R.string.app_name);
+        Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
 
         // Starts the app with MapFragment
         changeFragment(new MapFragment(),TAG_MAP);
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                     fragment = new MapFragment();
                 }
                 // Display the Stations title on the ActionBar
-                getSupportActionBar().setTitle(R.string.app_name);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
                 break;
 
             // Display StationsFragment
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                     fragment = new StationsFragment();
                 }
                 // Display the Stations title on the ActionBar
-                getSupportActionBar().setTitle(R.string.bottom_menu_stations);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_stations);
                 break;
 
             // Display HistoryFragment
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                     fragment = new HistoryFragment();
                 }
                 // Display the HistoryFragment title on the ActionBar
-                getSupportActionBar().setTitle(R.string.bottom_menu_history);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_history);
                 break;
 
             // Display InformationFragment
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                     fragment = new InformationFragment();
                 }
                 // Display the InformationFragment title on the ActionBar
-                getSupportActionBar().setTitle(R.string.bottom_menu_information);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_information);
                 break;
         }
 
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            restoreMapFragmentFromDirections();
+            backDirectionsButton();
         }
         return true;
     }
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     {
         if ((keyCode == KeyEvent.KEYCODE_BACK))
         {
-            restoreMapFragmentFromDirections();
+            backDirectionsButton();
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -156,11 +157,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         args.putString(DirectionsFragment.DESTINATION_ADDRESS, destinationAddress);
         fragment.setArguments(args);
 
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.frameLayout, fragment, TAG_DIRECTIONS)
-                .addToBackStack(TAG_DIRECTIONS)
-                .commit();
+        changeFragment(fragment, TAG_DIRECTIONS);
     }
 
     @Override
@@ -175,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         Bundle args = new Bundle();
         args.putStringArrayList(MapFragment.ROUTES_RESPONSES, responses);
         fragment.setArguments(args);
+        changeFragment(fragment, TAG_MAP);
         restoreMapFragmentFromDirections();
     }
 
@@ -186,8 +184,18 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     private void restoreMapFragmentFromDirections() {
-        getSupportFragmentManager().popBackStackImmediate();
         navigationView.setVisibility(View.VISIBLE);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
+    }
+
+    private void backDirectionsButton() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
+
+        if (fragment == null) {
+            fragment = new MapFragment();
+        }
+
+        changeFragment(fragment, TAG_MAP);
+        restoreMapFragmentFromDirections();
     }
 }

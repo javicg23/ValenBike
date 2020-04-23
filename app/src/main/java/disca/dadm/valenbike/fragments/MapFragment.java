@@ -1,11 +1,15 @@
 package disca.dadm.valenbike.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -42,6 +46,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -87,6 +92,7 @@ import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 
+import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
@@ -111,7 +117,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private View rootView;
     private GoogleMap map;
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
-    private FloatingActionButton fabMapType, fabDirections, fabLocation;
+    private FloatingActionButton fabMapType, fabDirections, fabLocation, fabClear;
     private AutocompleteSupportFragment autocompleteSearch;
     private PopupMenu popup;
     // route and direction
@@ -156,6 +162,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         fabMapType = rootView.findViewById(R.id.fabMapType);
         fabDirections = rootView.findViewById(R.id.fabDirections);
         fabLocation = rootView.findViewById(R.id.fabLocation);
+        fabClear = rootView.findViewById(R.id.fabClear);
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
         progressDialog = getDialogProgressBar().create();
 
@@ -211,15 +218,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 e.printStackTrace();
             }
 
-            showRoute();
         }
     }
 
     private void showRoute() {
         // remove marker because we will use another and if he marks another place it doesnt disappear
-        if (routeDirections == ROUTE_MARKER && markerSearch != null) {
-            markerSearch.remove();
-        }
+        clearMap();
 
         //remove previous routes
         if (polylinesRoutes.size() > 0) {
@@ -294,13 +298,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                     .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("start_location");
 
             LatLng startPosition = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition)));
+
+            Drawable drawable = getResources().getDrawable(R.drawable.marker_a, null);
+            BitmapDescriptor markerIcon = getMarkerIconFromDrawable(drawable);
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(startPosition).icon(markerIcon)));
 
             JSONObject endLocation = routeResponses.get(routeResponses.size() - 1)
                     .getJSONArray("routes").getJSONObject(0)
                     .getJSONArray("legs").getJSONObject(0).getJSONObject("end_location");
             LatLng endPosition = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
-            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition)));
+
+            drawable = getResources().getDrawable(R.drawable.marker_b, null);
+            markerIcon = getMarkerIconFromDrawable(drawable);
+
+            markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition).icon(markerIcon)));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -308,7 +319,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
 
     private void createdIndicationsRoute() {
-        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_indications_route, null);
         indicationsDialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
 
         setGeneralDataIndicationsRoutes(dialogView);
@@ -447,6 +458,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             }
         });
+
+        fabClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearMap();
+            }
+        });
+    }
+
+    private void clearMap() {
+        if (markerSearch != null) {
+            markerSearch.remove();
+        }
+        for (int i = 0; i < markerRoutes.size(); i++) {
+            markerRoutes.get(i).remove();
+        }
+        for (int i = 0; i < polylinesRoutes.size(); i++) {
+            polylinesRoutes.get(i).remove();
+        }
     }
 
     private void initMapAndLocation() {
@@ -528,10 +558,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (receivedStations == RECEIVED_STATIONS_NO) {
             requestStations(0);
         }
+        // show route if available
+        if (routeResponses != null && routeResponses.size() != 0) {
+            showRoute();
+        }
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
-         *  en vez de meterlo directmanete en numero fijo*/
+        *  en vez de meterlo directamente en numero fijo*/
         map.setPadding(0,170,0,0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
@@ -641,8 +675,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             LatLng destinationPos = null;
             String destinationAdd = "";
             if (locationActive && lastLocation != null) {
-                locationPos = lastLocation;
-                locationAdd = addressLastLocation;
+                if (checkLimitBounds(lastLocation)) {
+                    locationPos = lastLocation;
+                    locationAdd = addressLastLocation;
+                } else {
+                    showSnackBar(rootView, false, getString(R.string.map_location_out_bounds));
+                }
             }
             if (position != null) {
                 destinationPos = position;
@@ -731,7 +769,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void initSearch() {
-        Places.initialize(Objects.requireNonNull(getContext()), getString(R.string.maps_api_key));
+        Places.initialize(Objects.requireNonNull(getContext()), getString(R.string.google_maps_key));
 
         // Specify the types of place data to return, country and limit in the map
         autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG));
@@ -756,8 +794,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void requestStations(int number) {
-        showProgressDialog();
         if (isNetworkConnected(Objects.requireNonNull(getContext()))){
+            showProgressDialog();
             requestInProgress = true;
             PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
             petitionAsyncTask.execute(number);
@@ -796,7 +834,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     @Override
     public void receivedStation(Station station) {
-        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         BottomSheetDialog dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
         initDialogStation(dialog, dialogView, station);
         dialog.setContentView(dialogView);
@@ -823,8 +861,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         numberStation.setText(String.valueOf(station.getNumber()));
         address.setText(station.getAddress());
 
-        /*todo change this to if(station.isActive()), it's because there are all stations closed*/
-        if (!station.isActive()){
+        if (station.isActive()){
             bikes.setText(String.valueOf(station.getAvailableBikes()));
             stands.setText(String.valueOf(station.getAvailableBikeStands()));
 

@@ -2,31 +2,31 @@ package disca.dadm.valenbike.models;
 
 public class Station {
     private int number;
-    private String contractName;
+    private String contract_name;
     private String name;
     private String address;
     private Position position;
     private boolean banking;
     private boolean bonus;
-    private int bikeStands;
-    private int availableBikeStands;
-    private int availableBikes;
+    private int bike_stands;
+    private int available_bike_stands;
+    private int available_bikes;
     private String status;
-    private long lastUpdate;
+    private long last_update;
 
     public Station(int number, String contractName, String name, String address, Position position, boolean banking, boolean bonus, int bikeStands, int availableBikeStands, int availableBikes, String status, long lastUpdate) {
         this.number = number;
-        this.contractName = contractName;
+        this.contract_name = contractName;
         this.name = name;
         this.address = address;
         this.position = position;
         this.banking = banking;
         this.bonus = bonus;
-        this.bikeStands = bikeStands;
-        this.availableBikeStands = availableBikeStands;
-        this.availableBikes = availableBikes;
+        this.bike_stands = bikeStands;
+        this.available_bike_stands = availableBikeStands;
+        this.available_bikes = availableBikes;
         this.status = status;
-        this.lastUpdate = lastUpdate;
+        this.last_update = lastUpdate;
     }
 
     public Station() {
@@ -41,11 +41,11 @@ public class Station {
     }
 
     public String getContractName() {
-        return contractName;
+        return contract_name;
     }
 
     public void setContractName(String value) {
-        this.contractName = value;
+        this.contract_name = value;
     }
 
     public String getName() {
@@ -89,27 +89,27 @@ public class Station {
     }
 
     public int getBikeStands() {
-        return bikeStands;
+        return bike_stands;
     }
 
     public void setBikeStands(int value) {
-        this.bikeStands = value;
+        this.bike_stands = value;
     }
 
     public int getAvailableBikeStands() {
-        return availableBikeStands;
+        return available_bike_stands;
     }
 
     public void setAvailableBikeStands(int value) {
-        this.availableBikeStands = value;
+        this.available_bike_stands = value;
     }
 
     public int getAvailableBikes() {
-        return availableBikes;
+        return available_bikes;
     }
 
     public void setAvailableBikes(int value) {
-        this.availableBikes = value;
+        this.available_bikes = value;
     }
 
     public String getStatus() {
@@ -121,11 +121,11 @@ public class Station {
     }
 
     public long getLastUpdate() {
-        return lastUpdate;
+        return last_update;
     }
 
     public void setLastUpdate(long value) {
-        this.lastUpdate = value;
+        this.last_update = value;
     }
 
     public boolean isActive() {

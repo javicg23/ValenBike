@@ -40,6 +40,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.file.Watchable;
@@ -85,6 +86,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private boolean receivedOrigin = true;
     private boolean receivedDestination = true;
     private String responseBike, responseOrigin, responseDestination;
+    private boolean errorResponse = false;
 
     // loading progress
     private AlertDialog.Builder builder;
@@ -152,9 +154,9 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_directions, container, false);
         // hide bottom navigation and show back button on actionBar
-        BottomNavigationView navigationView = getActivity().findViewById(R.id.bottomView);
+        BottomNavigationView navigationView = Objects.requireNonNull(getActivity()).findViewById(R.id.bottomView);
         navigationView.setVisibility(View.GONE);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         locationCheck = rootView.findViewById(R.id.directionsLocation);
         swapRouteButton = rootView.findViewById(R.id.directionsSwapRoute);
@@ -184,10 +186,10 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         autocompleteSearchSource.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
 
         // obtain reference to the edit text
-        sourceText = autocompleteSearchSource.getView().findViewById(R.id.places_autocomplete_search_input);
+        sourceText = Objects.requireNonNull(autocompleteSearchSource.getView()).findViewById(R.id.places_autocomplete_search_input);
         sourceText.setHint(getString(R.string.directions_source));
         // remove icon search
-        autocompleteSearchSource.getView().findViewById(R.id.places_autocomplete_search_button).setVisibility(View.GONE);
+        autocompleteSearchSource.getView().<View>findViewById(R.id.places_autocomplete_search_button).setVisibility(View.GONE);
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteSearchSource.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -319,7 +321,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
             hideProgressDialog();
-        } else if (isNetworkConnected(getContext())) {
+        } else if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
             (new RouteAsyncTask(getContext(), this))
                     .execute(new ParametersRouteTask(ParametersRouteTask.ROUTE_ORIGIN, sourcePosition, nearestBikePosition));
             (new RouteAsyncTask(getContext(), this))
@@ -356,8 +358,8 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         return nearestStation;
     }
 
-    public void receivedAllRoute() {
-        if (receivedOrigin && receivedBike && receivedDestination) {
+    private void receivedAllRoute() {
+        if (receivedOrigin && receivedBike && receivedDestination && !errorResponse) {
             // Check that the route was successfully obtained
             if (responseOrigin != null && responseBike != null && responseDestination != null) {
                 ArrayList<String> responses = new ArrayList<>();
@@ -366,19 +368,21 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                 responses.add(responseDestination);
 
                 dataPassListener.passRouteToMap(responses);
-                hideProgressDialog();
             }
         }
         // If no route was obtained then show a message saying so
         else {
             showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+            errorResponse = false;
         }
+        hideProgressDialog();
     }
 
     @Override
     public void receivedOriginRoute(String result) {
         receivedOrigin = true;
         responseOrigin = result;
+        checkResponse(result);
         receivedAllRoute();
     }
 
@@ -386,6 +390,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedBikeRoute(String result) {
         receivedBike = true;
         responseBike = result;
+        checkResponse(result);
         receivedAllRoute();
     }
 
@@ -393,7 +398,20 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     public void receivedDestinationRoute(String result) {
         receivedDestination = true;
         responseDestination = result;
+        checkResponse(result);
         receivedAllRoute();
+    }
+
+    private void checkResponse(String result) {
+        try {
+            JSONObject jsonObject = new JSONObject(result);
+            boolean error = null != jsonObject.optString("error_message", null);
+            if (error) {
+                errorResponse = true;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private AlertDialog.Builder getDialogProgressBar() {
