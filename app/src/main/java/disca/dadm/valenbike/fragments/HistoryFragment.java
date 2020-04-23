@@ -21,16 +21,19 @@ import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.HistoryAdapter;
+import disca.dadm.valenbike.database.Journey;
 import disca.dadm.valenbike.lib.RecyclerItemTouchHelper;
-import disca.dadm.valenbike.models.History;
+
+import disca.dadm.valenbike.tasks.HistoryAsyncTask;
 
 
 public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener{
 
     private RecyclerView recycler;
-    private List<History> historyList;
+    private List<Journey> historyList = new ArrayList<Journey>();
     private HistoryAdapter adapter = null;
     private Button delete;
+    private TextView totalTime, totalMoney;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,12 +45,8 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recycler = view.findViewById(R.id.recyclerHistory);
-        TextView totalTime = view.findViewById(R.id.totalTime);
-        //String text = getTotalTimeUser(); ---BACK---
-        totalTime.setText("20'");
-        TextView totalMoney = view.findViewById(R.id.totalMoney);
-        //text = getTotalMoneyUser(); ---BACK---
-        totalMoney.setText("20€");
+        totalTime = view.findViewById(R.id.totalTime);
+        totalMoney = view.findViewById(R.id.totalMoney);
 
         delete = view.findViewById(R.id.deleteButton);
         delete.setOnClickListener(new View.OnClickListener() {
@@ -56,16 +55,12 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             }
         });
 
-        initData();
         initRecyclerView();
 
-        return view;
-    }
+        HistoryAsyncTask task = new HistoryAsyncTask(this);
+        task.execute();
 
-    private void initData() {
-        historyList = new ArrayList<History>();
-        historyList.add(new History("21/10/2020", "20'","Torrefiel", "UPV", "2 km", "15 €"));
-        delete.setVisibility(View.VISIBLE);
+        return view;
     }
 
     private void initRecyclerView() {
@@ -75,10 +70,28 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         recycler.setAdapter(adapter);
     }
 
+    public void getList (List<Journey> list) {
+        this.historyList.addAll(list);
+        this.adapter.notifyDataSetChanged();
+        initData();
+    }
+
+    private void initData(){
+        if (!historyList.isEmpty()) delete.setVisibility(View.VISIBLE);
+        int time=0, money=0;
+
+        for(int i =0; i<historyList.size(); i++) {
+            time+= historyList.get(i).getTotalTime();
+            money+= historyList.get(i).getTotalCost();
+        }
+
+        totalTime.setText(time + " ");
+        totalMoney.setText(money + " €");
+    }
     @Override
     public void onSwipe(RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof HistoryAdapter.HistoryViewHolder) {
-            History deleted = this.historyList.get(viewHolder.getAdapterPosition());
+            Journey deleted = this.historyList.get(viewHolder.getAdapterPosition());
             int positionDeleted = viewHolder.getAdapterPosition();
             adapter.deleteItem(viewHolder.getAdapterPosition());
             showSnackBar(deleted, positionDeleted);
@@ -103,7 +116,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         builder.create().show();
     }
 
-    private void showSnackBar (final History deleted, final int position) {
+    private void showSnackBar (final Journey deleted, final int position) {
         Snackbar snackbar = Snackbar.make(this.getView(), "Historial eliminado", Snackbar.LENGTH_LONG);
         snackbar.setAction("Deshacer", new View.OnClickListener() {
                 @Override
@@ -115,5 +128,6 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             snackbar.setActionTextColor(Color.BLUE);
             snackbar.show();
     }
+
 }
 

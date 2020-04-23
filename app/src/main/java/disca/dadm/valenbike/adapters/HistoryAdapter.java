@@ -8,16 +8,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.models.History;
+import disca.dadm.valenbike.database.Journey;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
     private static final String TAG = "HistoryAdapter";
-    private List<History> historyList;
+    private List<Journey> historyList;
 
-    public HistoryAdapter(List<History> historyList) {
+    public HistoryAdapter(List<Journey> historyList) {
         this.historyList = historyList;
     }
 
@@ -30,13 +31,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     @Override
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, final int position) {
-        History history = historyList.get(position);
+        Journey history = historyList.get(position);
         holder.origin.setText(history.getOrigin());
         holder.destination.setText((history.getDestination()));
-        holder.date.setText(history.getDate());
-        holder.time.setText(history.getTime());
-        holder.distance.setText(history.getDistance());
-        holder.money.setText(history.getMoney());
+        holder.date.setText(new SimpleDateFormat("dd/MM/YYYY").format(history.getDate()));
+        holder.time.setText(history.getTotalTime() + "'");
+        holder.distance.setText(history.getDistance() + " km");
+        holder.money.setText(history.getTotalCost()+ " €");
     }
 
     @Override
@@ -72,7 +73,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         this.notifyDataSetChanged();
     }
 
-    public void restoreItem (History deleted, int position) {
+    public void restoreItem (Journey deleted, int position) {
         this.historyList.add(position, deleted);
         this.notifyItemInserted(position);
     }
