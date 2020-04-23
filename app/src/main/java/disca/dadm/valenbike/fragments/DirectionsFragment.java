@@ -97,6 +97,14 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private CheckBox locationCheck;
     private FloatingActionButton fabDirections;
 
+    public DirectionsFragment() {
+        // Required empty public constructor
+    }
+
+    public static DirectionsFragment newInstance() {
+        DirectionsFragment fragment = new DirectionsFragment();
+        return fragment;
+    }
 
     @Override
     public void onAttach(@NonNull Context context)

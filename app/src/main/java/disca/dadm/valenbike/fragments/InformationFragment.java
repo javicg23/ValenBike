@@ -20,6 +20,15 @@ import disca.dadm.valenbike.R;
 
 public class InformationFragment extends Fragment {
 
+    public InformationFragment() {
+        // Required empty public constructor
+    }
+
+    public static InformationFragment newInstance() {
+        InformationFragment fragment = new InformationFragment();
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -55,6 +55,7 @@
     <string name="map_type_terrain">Terreno</string>
     <string name="map_type_traffic">Tráfico</string>
     <string name="map_type_satellite">Satélite</string>
+    <string name="map_search_hint">Buscar</string>
     <string name="permissions_not_granted">No podrá ver su localización porque no ha dado permisos</string>
     <string name="internet_required_connexion">Es necesario conexión a internet</string>
     <string name="internet_lost_connexion">No podrás acceder a todas las funciones sin conexión a internet</string>

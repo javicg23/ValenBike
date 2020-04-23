@@ -34,6 +34,14 @@ public class StationsFragment extends Fragment {
 
 //    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
 
+    public StationsFragment() {
+        // Required empty public constructor
+    }
+
+    public static StationsFragment newInstance() {
+        StationsFragment fragment = new StationsFragment();
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

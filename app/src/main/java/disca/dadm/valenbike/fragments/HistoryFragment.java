@@ -32,6 +32,15 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
     private HistoryAdapter adapter = null;
     private Button delete;
 
+    public HistoryFragment() {
+        // Required empty public constructor
+    }
+
+    public static HistoryFragment newInstance() {
+        HistoryFragment fragment = new HistoryFragment();
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

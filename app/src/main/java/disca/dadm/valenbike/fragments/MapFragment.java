@@ -44,10 +44,12 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -96,12 +98,18 @@ import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 import static disca.dadm.valenbike.utils.Tools.showSnackBar;
+import static java.lang.StrictMath.pow;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted {
 
     private final float CAMERA_ZOOM_STREET = 17;
+    private final float CAMERA_ZOOM_CITY = 12;
+    private final float CAMERA_ZOOM_NEIGHBORHOOD = 15;
     private final double POSITION_MARKER_SHEET = - 0.001;
-    private final String TITLE_SEARCH = "SEARCH";
+    private final String TAG_MARKER_SEARCH = "SEARCH";
+    private final String TAG_MAP_TYPE = "MAP_TYPE";
+    private final String TAG_CAMERA_POSITION = "CAMERA_POSITION";
+    private final String TAG_ROUTE = "ROUTE";
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
     public static  final LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
@@ -120,17 +128,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private FloatingActionButton fabMapType, fabDirections, fabLocation, fabClear;
     private AutocompleteSupportFragment autocompleteSearch;
     private PopupMenu popup;
+    private MapView mapView;
+    private MarkerOptions markerOptionsSearch;
+    private CameraPosition cameraPosition;
+    private boolean showIndicationsRoute = false;
+
     // route and direction
     private Marker markerSearch;
     private LatLng lastLocation, stationLatLng;
     private String addressLastLocation, addressSearch, addressStation;
     private boolean receivedMarkerAddress = true, receivedGPSAddress = true, receivedStationAddress = true;
-    private int routeDirections = ROUTE_MARKER;
+    private int routeDirections = ROUTE_STATION;
     private boolean locationActive;
-    private ArrayList<JSONObject> routeResponses;
+    private ArrayList<JSONObject> routeResponses = new ArrayList<>();
     private List<Polyline> polylinesRoutes = new ArrayList<>();
     private List<Marker> markerRoutes = new ArrayList<>();
     private BottomSheetDialog indicationsDialog;
+    private ArrayList<String> stringResponses;
 
     // location attributes
     private FusedLocationProviderClient locationProviderClient;
@@ -147,11 +161,51 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     // open direction fragment and pass objects
     private DataPassListener dataPassListener;
 
+    public MapFragment() {
+        // Required empty public constructor
+    }
+
+    public static MapFragment newInstance() {
+        MapFragment fragment = new MapFragment();
+        fragment.setRetainInstance(true);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            markerOptionsSearch = savedInstanceState.getParcelable(TAG_MARKER_SEARCH);
+            mapType = savedInstanceState.getInt(TAG_MAP_TYPE);
+            cameraPosition = savedInstanceState.getParcelable(TAG_CAMERA_POSITION);
+            stringResponses = savedInstanceState.getStringArrayList(TAG_ROUTE);
+        }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mapView != null) {
+            mapView.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mapView != null) {
+            mapView.onDestroy();
+        }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapView != null) {
+            mapView.onLowMemory();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -165,14 +219,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         fabClear = rootView.findViewById(R.id.fabClear);
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
         progressDialog = getDialogProgressBar().create();
+        mapView = rootView.findViewById(R.id.map);
 
         initSearch();
         fabsListeners();
         createPopupMenu();
-        initMapAndLocation();
+        initMapAndLocation(savedInstanceState);
         return rootView;
     }
 
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        if (markerSearch != null) {
+            outState.putParcelable(TAG_MARKER_SEARCH, markerOptionsSearch);
+        }
+        outState.putInt(TAG_MAP_TYPE, mapType);
+        outState.putParcelable(TAG_CAMERA_POSITION, map.getCameraPosition());
+        outState.putStringArrayList(TAG_ROUTE, stringResponses);
+        super.onSaveInstanceState(outState);
+        if (mapView != null) {
+            mapView.onSaveInstanceState(outState);
+        }
+    }
 
     /**
      * Disables the location updates (if enabled).
@@ -182,6 +251,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         super.onStop();
         // Check the location framework in use and disable
         disableLocation();
+        if (mapView != null) {
+            mapView.onStop();
+        }
     }
 
     @Override
@@ -203,47 +275,42 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     @Override
     public void onStart() {
         super.onStart();
+
+        if (mapView != null) {
+            mapView.onStart();
+        }
+
         Bundle args = getArguments();
         if (args != null) {
             // pass String to JSONOBject
-            ArrayList<String> stringResponses= args.getStringArrayList(ROUTES_RESPONSES);
-            try {
-                routeResponses = new ArrayList<>();
-                if (stringResponses != null) {
-                    for (int i = 0; i < stringResponses.size(); i++) {
-                        routeResponses.add(new JSONObject(stringResponses.get(i)));
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            stringResponses = args.getStringArrayList(ROUTES_RESPONSES);
+            routeDirections = ROUTE_MARKER;
+            showIndicationsRoute = true;
 
         }
     }
 
-    private void showRoute() {
-        // remove marker because we will use another and if he marks another place it doesnt disappear
-        clearMap();
-
-        //remove previous routes
-        if (polylinesRoutes.size() > 0) {
-            for (int i = 0; i < markerRoutes.size(); i++) {
-                markerRoutes.get(i).remove();
+    private void responseStringToJSON() {
+        try {
+            routeResponses = new ArrayList<>();
+            if (stringResponses != null) {
+                for (int i = 0; i < stringResponses.size(); i++) {
+                    routeResponses.add(new JSONObject(stringResponses.get(i)));
+                }
             }
-
-            for (int i = 0; i < polylinesRoutes.size(); i++) {
-                polylinesRoutes.get(i).remove();
-            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+    }
 
+    private void showRoute() {
+        // created bottom sheet modal with indications
+        createdIndicationsRoute();
         // put a marker it start and final
         showMarkersRoutes();
 
-
         // show polyline route
         showBikeRoute();
-        // created bottom sheet modal with indications
-        createdIndicationsRoute();
 
     }
 
@@ -310,8 +377,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
             drawable = getResources().getDrawable(R.drawable.marker_b, null);
             markerIcon = getMarkerIconFromDrawable(drawable);
-
             markerRoutes.add(map.addMarker(new MarkerOptions().position(endPosition).icon(markerIcon)));
+
+            // move camera and zoom due to distance route
+            double latitude = (startPosition.latitude + endPosition.latitude) / 2;
+            double longitude = (startPosition.longitude + endPosition.longitude) / 2;
+            double difference = Math.pow(startPosition.latitude - endPosition.latitude, 2) + Math.pow(startPosition.longitude - endPosition.longitude, 2);
+            float zoom = CAMERA_ZOOM_CITY;
+            if (difference < 0.001) {
+                zoom = CAMERA_ZOOM_NEIGHBORHOOD;
+            }
+            moveCamera(new LatLng(latitude, longitude), zoom);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -327,7 +403,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         initRouteDataRecycler(dialogView);
 
         indicationsDialog.setContentView(dialogView);
-        indicationsDialog.show();
+        if (showIndicationsRoute) {
+            indicationsDialog.show();
+        }
     }
 
     private void initRouteDataRecycler(View dialogView) {
@@ -474,17 +552,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         for (int i = 0; i < markerRoutes.size(); i++) {
             markerRoutes.get(i).remove();
         }
+        markerRoutes.clear();
         for (int i = 0; i < polylinesRoutes.size(); i++) {
             polylinesRoutes.get(i).remove();
         }
+        polylinesRoutes.clear();
+        stringResponses.clear();
+        autocompleteSearch.setText("");
     }
 
-    private void initMapAndLocation() {
+    private void initMapAndLocation(Bundle savedInstanceState) {
         //Configure Mapview and sync to google map.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+        mapView.onResume();
 
         callback = new MyGoogleLocationCallback();
         locationProviderClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
@@ -558,10 +639,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (receivedStations == RECEIVED_STATIONS_NO) {
             requestStations(0);
         }
+        responseStringToJSON();
         // show route if available
-        if (routeResponses != null && routeResponses.size() != 0) {
+        if (routeResponses.size() != 0) {
             showRoute();
         }
+
+        restoreStateMapFragment();
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
@@ -596,7 +680,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                     LatLng position = marker.getPosition();
                     float zoom = map.getCameraPosition().zoom + 2;
                     moveCamera(position, zoom);
-                } else if (marker.getTitle().equals(TITLE_SEARCH)){
+                } else if (marker.getTitle().equals(TAG_MARKER_SEARCH)){
                     // search marker or long click
                     markerSearch.remove();
                     autocompleteSearch.setText("");
@@ -620,6 +704,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             }
         });
 
+    }
+
+    private void restoreStateMapFragment() {
+        // restore markerSearch
+        if (routeDirections == ROUTE_STATION && markerOptionsSearch != null) {
+            setMarkerSearch(markerOptionsSearch.getPosition());
+        }
+        // restore map type
+        if (mapType != GoogleMap.MAP_TYPE_NORMAL) {
+            map.setMapType(mapType);
+        }
+        // restore camera position
+        if (cameraPosition != null && !showIndicationsRoute) {
+            map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
     }
 
     private boolean checkLimitBounds(LatLng latLng) {
@@ -720,7 +819,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (markerSearch != null) {
             markerSearch.remove();
         }
-        markerSearch = map.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(TITLE_SEARCH));
+        markerOptionsSearch = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(TAG_MARKER_SEARCH);
+        markerSearch = map.addMarker(markerOptionsSearch);
     }
     /**
      * Updates the user interface to display the new latitude and longitude.
@@ -746,6 +846,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         popup = new PopupMenu(getActivity(), rootView.findViewById(R.id.fabMapType));
         // to inflate the menu resource (defined in XML) into the PopupMenu
         popup.getMenuInflater().inflate(R.menu.map_type, popup.getMenu());
+        // when restore state check the correct radio button
+        if (mapType != GoogleMap.MAP_TYPE_NORMAL) {
+            int itemId = mapType == GoogleMap.MAP_TYPE_SATELLITE ? R.id.map_type_satellite : R.id.map_type_terrain;
+            popup.getMenu().findItem(itemId).setChecked(true);
+        }
         //popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
@@ -775,6 +880,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         autocompleteSearch.setPlaceFields(Arrays.asList(Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG));
         autocompleteSearch.setCountry("ES");
         autocompleteSearch.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
+        autocompleteSearch.setHint(getString(R.string.map_search_hint));
 
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteSearch.setOnPlaceSelectedListener(new PlaceSelectionListener() {

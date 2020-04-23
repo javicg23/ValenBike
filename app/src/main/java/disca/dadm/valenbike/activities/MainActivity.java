@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static final String TAG_DIRECTIONS = "directions";
 
     private BottomNavigationView navigationView;
+    String currentFragment;
+    Fragment.SavedState savedState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
 
         // Starts the app with MapFragment
-        changeFragment(new MapFragment(),TAG_MAP);
+        changeFragment(MapFragment.newInstance(), TAG_MAP);
     }
 
     @Override
@@ -73,10 +75,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             case R.id.navigation_map:
                 // Get or create a new MapFragment
                 tag = TAG_MAP;
-                fragment = getSupportFragmentManager().findFragmentByTag(tag);
-                if (fragment == null) {
-                    fragment = new MapFragment();
-                }
+                // Restore state of map fragment before adding it to the manager
+                // otherwise it will already be created and no stated will be restored
+                final Fragment fr = MapFragment.newInstance();
+                fr.setInitialSavedState(savedState);
+                fragment = fr;
+
                 // Display the Stations title on the ActionBar
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
                 break;
@@ -87,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 tag = TAG_STATIONS;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
-                    fragment = new StationsFragment();
+                    fragment = StationsFragment.newInstance();
                 }
                 // Display the Stations title on the ActionBar
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_stations);
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 tag = TAG_HISTORY;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
-                    fragment = new HistoryFragment();
+                    fragment = HistoryFragment.newInstance();
                 }
                 // Display the HistoryFragment title on the ActionBar
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_history);
@@ -111,13 +115,17 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 tag = TAG_INFORMATION;
                 fragment = getSupportFragmentManager().findFragmentByTag(tag);
                 if (fragment == null) {
-                    fragment = new InformationFragment();
+                    fragment = InformationFragment.newInstance();
                 }
                 // Display the InformationFragment title on the ActionBar
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_information);
                 break;
         }
 
+        // Save state of map fragment
+        if (currentFragment == TAG_MAP) {
+            savedState = getSupportFragmentManager().saveFragmentInstanceState(getSupportFragmentManager().findFragmentByTag(currentFragment));
+        }
         // Replace the existing Fragment by the new one
         changeFragment(fragment, tag);
 
@@ -147,7 +155,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_DIRECTIONS);
 
         if (fragment == null) {
-            fragment = new DirectionsFragment();
+            fragment = DirectionsFragment.newInstance();
+        }
+        // Save state of map fragment
+        if (currentFragment == TAG_MAP) {
+            savedState = getSupportFragmentManager().saveFragmentInstanceState(Objects.requireNonNull(getSupportFragmentManager().findFragmentByTag(currentFragment)));
         }
 
         Bundle args = new Bundle();
@@ -166,9 +178,10 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
 
         if (fragment == null) {
-            fragment = new MapFragment();
+            fragment = MapFragment.newInstance();
         }
 
+        fragment.setInitialSavedState(savedState);
         Bundle args = new Bundle();
         args.putStringArrayList(MapFragment.ROUTES_RESPONSES, responses);
         fragment.setArguments(args);
@@ -181,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 .beginTransaction()
                 .replace(R.id.frameLayout, fragment, tag)
                 .commit();
+        currentFragment = tag;
     }
 
     private void restoreMapFragmentFromDirections() {
@@ -192,8 +206,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
 
         if (fragment == null) {
-            fragment = new MapFragment();
+            fragment = MapFragment.newInstance();
         }
+        fragment.setInitialSavedState(savedState);
 
         changeFragment(fragment, TAG_MAP);
         restoreMapFragmentFromDirections();
