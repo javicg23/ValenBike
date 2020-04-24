@@ -26,14 +26,6 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class Tools {
 
-    public static void showSnackBar(View view, boolean aboveNav, String msg) {
-        Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
-        if (aboveNav) {
-            snackbar.setAnchorView(R.id.bottomView);
-        }
-        snackbar.show();
-    }
-
     public static boolean isNetworkConnected(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo info = null;

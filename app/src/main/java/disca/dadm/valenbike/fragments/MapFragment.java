@@ -3,17 +3,12 @@ package disca.dadm.valenbike.fragments;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,7 +23,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -46,7 +40,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -63,23 +56,20 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.clustering.ClusterManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.sql.Time;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.RouteAdapter;
@@ -97,8 +87,6 @@ import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
-import static disca.dadm.valenbike.utils.Tools.showSnackBar;
-import static java.lang.StrictMath.pow;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted {
 
@@ -531,7 +519,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                     if (checkLimitBounds(lastLocation)) {
                         moveCamera(lastLocation, CAMERA_ZOOM_STREET);
                     } else {
-                        showSnackBar(rootView, true, getString(R.string.map_location_out_bounds));
+                        Snackbar.make(rootView, getString(R.string.map_location_out_bounds), Snackbar.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -618,7 +606,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         }
         // Notify the user that permission were not granted
         else {
-            showSnackBar(rootView, true, getString(R.string.permissions_not_granted));
+            Snackbar.make(rootView, getString(R.string.permissions_not_granted), Snackbar.LENGTH_SHORT).show();
         }
     }
 
@@ -668,7 +656,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 if (checkLimitBounds(latLng)) {
                     setMarkerSearch(latLng);
                 } else {
-                    showSnackBar(rootView, true, getString(R.string.map_marker_out_bounds));
+                    Snackbar.make(rootView, getString(R.string.map_marker_out_bounds), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -778,7 +766,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                     locationPos = lastLocation;
                     locationAdd = addressLastLocation;
                 } else {
-                    showSnackBar(rootView, false, getString(R.string.map_location_out_bounds));
+                    Snackbar.make(rootView, getString(R.string.map_location_out_bounds), Snackbar.LENGTH_SHORT).show();
                 }
             }
             if (position != null) {
@@ -893,7 +881,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
             @Override
             public void onError(@NonNull Status status) {
-                showSnackBar(rootView, true, getString(R.string.places_search_error));
+                Snackbar.make(rootView, getString(R.string.places_search_error), Snackbar.LENGTH_SHORT).show();
             }
         });
 

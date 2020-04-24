@@ -38,6 +38,7 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONException;
@@ -62,7 +63,6 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 import static disca.dadm.valenbike.fragments.MapFragment.LIMIT_MAP;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
-import static disca.dadm.valenbike.utils.Tools.showSnackBar;
 
 public class DirectionsFragment extends Fragment implements OnPetitionTaskCompleted, OnRouteTaskCompleted {
 
@@ -102,8 +102,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     }
 
     public static DirectionsFragment newInstance() {
-        DirectionsFragment fragment = new DirectionsFragment();
-        return fragment;
+        return new DirectionsFragment();
     }
 
     @Override
@@ -197,7 +196,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         sourceText = Objects.requireNonNull(autocompleteSearchSource.getView()).findViewById(R.id.places_autocomplete_search_input);
         sourceText.setHint(getString(R.string.directions_source));
         // remove icon search
-        autocompleteSearchSource.getView().<View>findViewById(R.id.places_autocomplete_search_button).setVisibility(View.GONE);
+        autocompleteSearchSource.getView().findViewById(R.id.places_autocomplete_search_button).setVisibility(View.GONE);
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteSearchSource.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -207,7 +206,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
             @Override
             public void onError(@NonNull Status status) {
-                showSnackBar(rootView, true, getString(R.string.places_search_error));
+                Snackbar.make(rootView, getString(R.string.places_search_error), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -220,7 +219,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         autocompleteSearchDestination.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
 
         // obtain reference to the edit text
-        destinationText = autocompleteSearchDestination.getView().findViewById(R.id.places_autocomplete_search_input);
+        destinationText = Objects.requireNonNull(autocompleteSearchDestination.getView()).findViewById(R.id.places_autocomplete_search_input);
         destinationText.setHint(getString(R.string.directions_destination));
         // remove icon search
         autocompleteSearchDestination.getView().findViewById(R.id.places_autocomplete_search_button).setVisibility(View.GONE);
@@ -234,7 +233,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
             @Override
             public void onError(@NonNull Status status) {
-                showSnackBar(rootView, true, getString(R.string.places_search_error));
+                Snackbar.make(rootView, getString(R.string.places_search_error), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -269,7 +268,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                     locationCheck.setBackground(getResources().getDrawable(R.drawable.ic_my_location_accent_24dp, null));
                     sourcePosition = locationPosition;
                 } else {
-                    showSnackBar(rootView, false, getString(R.string.directions_no_gps_location));
+                    Snackbar.make(rootView, getString(R.string.directions_no_gps_location), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -290,7 +289,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
             @Override
             public void onClick(View v) {
                 if (sourceText.getText().toString().trim().equals("") || destinationText.getText().toString().trim().equals("")){
-                    showSnackBar(rootView, false, getString(R.string.directions_no_source_destination));
+                    Snackbar.make(rootView, getString(R.string.directions_no_source_destination), Snackbar.LENGTH_SHORT).show();
                 } else {
                     searchRoute();
                 }
@@ -327,7 +326,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         Station nearestStandStation = getNearestStationToPosition(NEAREST_PARKING, destinationPosition);
         LatLng nearestStandPosition = new LatLng(nearestStandStation.getPosition().getLat(), nearestStandStation.getPosition().getLng());
         if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
-            showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+            Snackbar.make(rootView, getString(R.string.directions_route_not_available), Snackbar.LENGTH_SHORT).show();
             hideProgressDialog();
         } else if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
             (new RouteAsyncTask(getContext(), this))
@@ -380,7 +379,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         }
         // If no route was obtained then show a message saying so
         else {
-            showSnackBar(rootView, false, getString(R.string.directions_route_not_available));
+            Snackbar.make(rootView, getString(R.string.directions_route_not_available), Snackbar.LENGTH_SHORT).show();
             errorResponse = false;
         }
         hideProgressDialog();
