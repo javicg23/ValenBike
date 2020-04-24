@@ -61,6 +61,7 @@ import disca.dadm.valenbike.tasks.RouteAsyncTask;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static disca.dadm.valenbike.fragments.MapFragment.LIMIT_MAP;
+import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 
@@ -89,7 +90,6 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private boolean errorResponse = false;
 
     // loading progress
-    private AlertDialog.Builder builder;
     private AlertDialog progressDialog;
 
     private EditText sourceText, destinationText;
@@ -164,7 +164,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         fabDirections = rootView.findViewById(R.id.directionsFabNavigation);
         autocompleteSearchSource = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearchSource);
         autocompleteSearchDestination = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearchDestination);
-        progressDialog = getDialogProgressBar().create();
+        progressDialog = getDialogProgressBar(getContext()).create();
 
         initSearch();
         initListeners();
@@ -286,6 +286,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                 if (sourceText.getText().toString().trim().equals("") || destinationText.getText().toString().trim().equals("")) {
                     Snackbar.make(rootView, getString(R.string.directions_no_source_destination), Snackbar.LENGTH_SHORT).show();
                 } else {
+                    fabDirections.setEnabled(false);
                     searchRoute();
                 }
             }
@@ -377,6 +378,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
             Snackbar.make(rootView, getString(R.string.directions_route_not_available), Snackbar.LENGTH_SHORT).show();
             errorResponse = false;
         }
+        fabDirections.setEnabled(true);
         hideProgressDialog();
     }
 
@@ -414,25 +416,6 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    private AlertDialog.Builder getDialogProgressBar() {
-
-        if (builder == null) {
-            builder = new AlertDialog.Builder(getContext());
-
-            builder.setTitle(getString(R.string.dialog_loading_information));
-
-            final ProgressBar progressBar = new ProgressBar(getContext());
-            progressBar.setPadding(17, 17, 17, 17);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            progressBar.setLayoutParams(lp);
-            builder.setCancelable(false);
-            builder.setView(progressBar);
-        }
-        return builder;
     }
 
     private void showProgressDialog() {

@@ -1,6 +1,7 @@
 package disca.dadm.valenbike.fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,17 +22,22 @@ import java.util.List;
 import disca.dadm.valenbike.R;
 //import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.adapters.StationsAdapter;
+import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.utils.Tools;
 import disca.dadm.valenbike.utils.test;
+
+import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 //import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 public class StationsFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private List<StationGUI> stationsList;
+    private DataPassListener dataPassListener;
+    public static final String STATION_RESPONSE = "station_response";
 
 //    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
 
@@ -155,7 +162,24 @@ public class StationsFragment extends Fragment {
 
     private void initRecyclerView() {
         stationsList = Tools.getStationsGui();
-        StationsAdapter stationsAdapter = new StationsAdapter(stationsList);
+        StationsAdapter stationsAdapter = new StationsAdapter(stationsList, dataPassListener, getContext());
         recyclerView.setAdapter(stationsAdapter);
     }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        // This makes sure that the host activity has implemented the callback interface
+        // If not, it throws an exception
+        try {
+            dataPassListener = (DataPassListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement DataPassListener");
+        }
+    }
+
+    public void setDataPassListener(DataPassListener callback) {
+        this.dataPassListener = callback;
+    }
+
 }

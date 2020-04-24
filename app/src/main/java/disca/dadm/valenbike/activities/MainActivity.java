@@ -78,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         } else if (fragment instanceof DirectionsFragment) {
             DirectionsFragment directionsFragment = (DirectionsFragment) fragment;
             directionsFragment.setDataPassListener(this);
+        } else if (fragment instanceof StationsFragment) {
+            StationsFragment stationsFragment = (StationsFragment) fragment;
+            stationsFragment.setDataPassListener(this);
         }
     }
 
@@ -181,6 +184,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             savedState = getSupportFragmentManager().saveFragmentInstanceState(Objects.requireNonNull(getSupportFragmentManager().findFragmentByTag(currentFragment)));
         }
 
+        changeTitleAndMenuCheck();
+
         Bundle args = new Bundle();
         args.putParcelable(DirectionsFragment.SOURCE_POSITION, sourcePosition);
         args.putString(DirectionsFragment.SOURCE_ADDRESS, sourceAddress);
@@ -201,11 +206,33 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
 
         fragment.setInitialSavedState(savedState);
+
+        changeTitleAndMenuCheck();
+
         Bundle args = new Bundle();
         args.putStringArrayList(MapFragment.ROUTES_RESPONSES, responses);
         fragment.setArguments(args);
         changeFragment(fragment, TAG_MAP);
         restoreMapFragmentFromDirections();
+    }
+
+    @Override
+    public void passStationToMap(int id) {
+
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
+
+        if (fragment == null) {
+            fragment = MapFragment.newInstance();
+        }
+
+        fragment.setInitialSavedState(savedState);
+
+        changeTitleAndMenuCheck();
+
+        Bundle args = new Bundle();
+        args.putInt(StationsFragment.STATION_RESPONSE, id);
+        fragment.setArguments(args);
+        changeFragment(fragment, TAG_MAP);
     }
 
     private void changeFragment(Fragment fragment, String tag) {
@@ -229,8 +256,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 fragment = MapFragment.newInstance();
             }
             fragment.setInitialSavedState(savedState);
-            Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
-            navigationView.getMenu().getItem(0).setChecked(true);
+
+            changeTitleAndMenuCheck();
+
             changeFragment(fragment, TAG_MAP);
             restoreMapFragmentFromDirections();
         } else {
@@ -245,5 +273,10 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             // Starts the app with MapFragment
             changeFragment(MapFragment.newInstance(), TAG_MAP);
         }
+    }
+
+    private void changeTitleAndMenuCheck() {
+        Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
+        navigationView.getMenu().getItem(0).setChecked(true);
     }
 }

@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -85,7 +86,10 @@ import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
+import disca.dadm.valenbike.utils.Tools;
 
+import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
+import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
@@ -104,7 +108,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     public static final LatLngBounds LIMIT_MAP = new LatLngBounds(
             new LatLng(39.414708, -0.480004), new LatLng(39.529877, -0.260633));
     private static final int ROUTE_MARKER = 0;
-    private static final int ROUTE_STATION = 1;
+    public static final int ROUTE_STATION = 1;
     public static final String ROUTES_RESPONSES = "route_responses";
     private static int RECEIVED_STATIONS_NO = 0;
     private static int RECEIVED_STATIONS_YES = 1;
@@ -144,13 +148,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private LocationRequest request;
 
     // loading progress
-    private AlertDialog.Builder builder;
     private AlertDialog progressDialog;
 
     // request of stations api
     private boolean requestInProgress = false;
     // open direction fragment and pass objects
     private DataPassListener dataPassListener;
+
+    private int idStationResponse;
 
     public MapFragment() {
         // Required empty public constructor
@@ -209,7 +214,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         fabLocation = rootView.findViewById(R.id.fabLocation);
         fabClear = rootView.findViewById(R.id.fabClear);
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
-        progressDialog = getDialogProgressBar().create();
+        progressDialog = getDialogProgressBar(getContext()).create();
         mapView = rootView.findViewById(R.id.map);
 
         initSearch();
@@ -270,10 +275,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         Bundle args = getArguments();
         if (args != null) {
             // pass String to JSONOBject
-            stringResponses = args.getStringArrayList(ROUTES_RESPONSES);
+            idStationResponse = args.getInt("station_response");
+            if (idStationResponse == 0) {
+                stringResponses = args.getStringArrayList(ROUTES_RESPONSES);
+                showIndicationsRoute = true;
+            }
             routeDirections = ROUTE_MARKER;
-            showIndicationsRoute = true;
-
         }
     }
 
@@ -502,7 +509,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 popup.show();
             }
         });
-
+        fabDirections.setEnabled(false);
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -698,6 +705,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             }
         });
+
+        if (idStationResponse != 0) {
+            requestStations(idStationResponse);
+        }
     }
 
     private void restoreStateMapFragment() {
@@ -741,14 +752,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         openDirections();
     }
 
-    // depends on the location put the res in addressLastLocation or addressSearch
-    private void coordinatesToAddress(int location, LatLng latLng) {
-        // Start asynchronous task to translate coordinates into an address
-        if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
-            (new GeocoderAsyncTask(getContext(), MapFragment.this)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
-        }
-    }
-
     private void openDirections() {
         if (receivedStationAddress && receivedMarkerAddress && receivedGPSAddress) {
             LatLng position = null;
@@ -789,15 +792,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (routeDirections == ROUTE_MARKER) {
             if (markerSearch != null) {
                 receivedMarkerAddress = false;
-                coordinatesToAddress(ParametersGeocoderTask.LOCATION_MARKER, markerSearch.getPosition());
+                coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_MARKER, markerSearch.getPosition());
             }
         } else {
             receivedStationAddress = false;
-            coordinatesToAddress(ParametersGeocoderTask.LOCATION_STATION, stationLatLng);
+            coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_STATION, stationLatLng);
         }
         if (locationActive && lastLocation != null) {
             receivedGPSAddress = false;
-            coordinatesToAddress(ParametersGeocoderTask.LOCATION_GPS, lastLocation);
+            coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_GPS, lastLocation);
         }
 
         if (receivedStationAddress && receivedMarkerAddress && receivedGPSAddress) {
@@ -1017,31 +1020,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     }
 
-    private AlertDialog.Builder getDialogProgressBar() {
-
-        if (builder == null) {
-            builder = new AlertDialog.Builder(getContext());
-
-            builder.setTitle(getString(R.string.dialog_loading_information));
-
-            final ProgressBar progressBar = new ProgressBar(getContext());
-            progressBar.setPadding(17, 17, 17, 17);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            progressBar.setLayoutParams(lp);
-            builder.setCancelable(false);
-            builder.setView(progressBar);
-        }
-        return builder;
-    }
-
     private void showProgressDialog() {
         progressDialog.show();
     }
 
     private void hideProgressDialog() {
         progressDialog.dismiss();
+        fabDirections.setEnabled(true);
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {

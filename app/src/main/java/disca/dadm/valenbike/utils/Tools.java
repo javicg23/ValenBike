@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.utils;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -7,6 +8,8 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -16,15 +19,22 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.fragments.MapFragment;
+import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
+import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
+import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class Tools {
+
+    private static AlertDialog.Builder builder;
 
     public static boolean isNetworkConnected(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
@@ -42,6 +52,32 @@ public class Tools {
         drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
         drawable.draw(canvas);
         return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    // depends on the location put the res in addressLastLocation or addressSearch
+    public static void coordinatesToAddress(Context context, OnGeocoderTaskCompleted onGeocoderTaskCompleted, int location, LatLng latLng) {
+        // Start asynchronous task to translate coordinates into an address
+        if (isNetworkConnected(Objects.requireNonNull(context))) {
+            (new GeocoderAsyncTask(context, onGeocoderTaskCompleted)).execute(new ParametersGeocoderTask(location, latLng.latitude, latLng.longitude));
+        }
+    }
+
+    public static AlertDialog.Builder getDialogProgressBar(Context context) {
+
+            builder = new AlertDialog.Builder(context);
+
+            builder.setTitle(context.getString(R.string.dialog_loading_information));
+
+            ProgressBar progressBar = new ProgressBar(context);
+            progressBar.setPadding(17, 17, 17, 17);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            progressBar.setLayoutParams(lp);
+            builder.setCancelable(false);
+            builder.setView(progressBar);
+
+        return builder;
     }
 
     /* todo remove all this method*/

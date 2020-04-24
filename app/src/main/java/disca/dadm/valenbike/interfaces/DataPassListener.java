@@ -8,4 +8,6 @@ public interface DataPassListener {
     void passLocationToDirection(LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress);
 
     void passRouteToMap(ArrayList<String> responses);
+
+    void passStationToMap(int id);
 }

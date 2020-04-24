@@ -1,5 +1,8 @@
 package disca.dadm.valenbike.adapters;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.media.Image;
 import android.text.format.DateFormat;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
@@ -18,19 +21,38 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.fragments.MapFragment;
+import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
+import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.StationGUI;
 
-public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.StationsViewHolder> {
+import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
+import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
+
+public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.StationsViewHolder> implements OnGeocoderTaskCompleted {
 
     private static final String TAG = "StationsAdapter";
     private List<StationGUI> stationsList;
+    private DataPassListener dataPassListener;
+    private Context context;
+    private StationGUI stationGUI;
 
-    public StationsAdapter(List<StationGUI> stationsList) {
+    // loading progress
+    private AlertDialog progressDialog;
+
+
+    public StationsAdapter(List<StationGUI> stationsList, DataPassListener dataPassListener, Context context) {
         this.stationsList = stationsList;
+        this.dataPassListener = dataPassListener;
+        this.context = context;
+
     }
 
     @NonNull
@@ -48,7 +70,9 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         boolean isArrowDown = stationsList.get(position).isExpanded();
         holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
 
-        StationGUI stationGUI = stationsList.get(position);
+        progressDialog = getDialogProgressBar(context).create();
+
+        stationGUI = stationsList.get(position);
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
         holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
         holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
@@ -64,6 +88,20 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
         holder.banking.setSelected(stationGUI.getBanking());
 
+        holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showProgressDialog();
+                coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
+            }
+        });
+
+        holder.ibShowMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dataPassListener.passStationToMap(stationGUI.getNumber());
+            }
+        });
     }
 
     @Override
@@ -75,6 +113,30 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         return 0;
     }
 
+    @Override
+    public void receivedAddressGPS(String address) {
+
+    }
+
+    @Override
+    public void receivedAddressMarker(String address) {
+
+    }
+
+    @Override
+    public void receivedAddressStation(String address) {
+        dataPassListener.passLocationToDirection(null, "", new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()), address);
+        hideProgressDialog();
+    }
+
+    private void showProgressDialog() {
+        progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        progressDialog.dismiss();
+    }
+
     class StationsViewHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "StationsViewHolder";
 
@@ -82,6 +144,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         private TextView numberStation, numFreeBikes, numFreeGaps, distance, address, lastUpdate;
         private ImageView ivArrow, banking;
         private CheckBox reminder, favourite;
+        private ImageButton ibShowMap, ibShowDistance;
 
         public StationsViewHolder(@NonNull final View itemView) {
             super(itemView);
@@ -96,6 +159,8 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             reminder = itemView.findViewById(R.id.sheetReminder);
             favourite = itemView.findViewById(R.id.sheetFavourite);
             ivArrow = itemView.findViewById(R.id.ivArrow);
+            ibShowDistance = itemView.findViewById(R.id.ibShowDistance);
+            ibShowMap = itemView.findViewById(R.id.ibShowMap);
 
             numberStation.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -132,8 +197,8 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                     }
                 }
             });
-
         }
+
         private void changeExpandibleLayout() {
             StationGUI station = stationsList.get(getAdapterPosition());
             station.setExpanded(!station.isExpanded());

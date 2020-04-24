@@ -58,7 +58,6 @@ public class GeocoderAsyncTask extends AsyncTask<ParametersGeocoderTask, Void, A
      */
     @Override
     protected Address doInBackground(ParametersGeocoderTask... params) {
-
         // Hold reference to a Geocoder to translate coordinates into human readable addresses
         Geocoder geocoder;
         // Initialize the Geocoder
