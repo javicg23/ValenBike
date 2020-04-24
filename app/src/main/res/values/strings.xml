@@ -47,7 +47,6 @@
     <string name="cardview_contact_title4">Plano de ubicación Oficina Atención al Cliente</string>
     <string name="cardview_contact_body4">Nuestro horario es de lunes a viernes, de 10:00 a 14:00 horas y de 16:30 a 20:00 horas. Sabados de 10:00 a 14:00 horas.</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="map_location_out_bounds">Tu localización está fuera de los límites de uso</string>
     <string name="map_marker_out_bounds">Marcador fuera de los límites de uso</string>

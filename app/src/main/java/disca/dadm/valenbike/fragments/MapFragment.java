@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -115,6 +117,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private int mapType = GoogleMap.MAP_TYPE_NORMAL;
     private FloatingActionButton fabMapType, fabDirections, fabLocation, fabClear;
     private AutocompleteSupportFragment autocompleteSearch;
+    private int autoCompleteSearchHeight;
     private PopupMenu popup;
     private MapView mapView;
     private MarkerOptions markerOptionsSearch;
@@ -632,9 +635,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         restoreStateMapFragment();
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
-        /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
-         *  en vez de meterlo directamente en numero fijo*/
-        map.setPadding(0, 170, 0, 0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
@@ -688,6 +688,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             }
         });
 
+        // Know height of autocompleteSearch & update height
+        autocompleteSearch.getView().getViewTreeObserver().addOnWindowFocusChangeListener(new ViewTreeObserver.OnWindowFocusChangeListener() {
+            @Override
+            public void onWindowFocusChanged(boolean hasFocus) {
+                if (autocompleteSearch.getView() != null) {
+                    autoCompleteSearchHeight = autocompleteSearch.getView().getHeight();
+                    map.setPadding(0, autoCompleteSearchHeight + 20, 0, 0);
+                }
+            }
+        });
     }
 
     private void restoreStateMapFragment() {
@@ -881,7 +891,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 Snackbar.make(rootView, getString(R.string.places_search_error), Snackbar.LENGTH_SHORT).show();
             }
         });
-
     }
 
     private void requestStations(int number) {
