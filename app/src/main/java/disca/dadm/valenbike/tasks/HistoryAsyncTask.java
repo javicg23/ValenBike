@@ -3,6 +3,7 @@ package disca.dadm.valenbike.tasks;
 import android.os.AsyncTask;
 
 import java.lang.ref.WeakReference;
+import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.database.ValenbikeDatabase;
@@ -18,9 +19,8 @@ public class HistoryAsyncTask extends AsyncTask<Void, Void, List<Journey>> {
 
     @Override
     protected List<Journey> doInBackground(Void... param) {
-
-        List<Journey> list =  ValenbikeDatabase.getInstance(this.activity.get().getContext()).journeyDao().getJourneys();
-        return list;
+       List<Journey> list =  ValenbikeDatabase.getInstance(this.activity.get().getContext()).journeyDao().getJourneys();
+       return list;
     }
 
     @Override

@@ -118,6 +118,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHol
             });
 
         }
+
         private void changeExpandibleLayout() {
             Route route = routes.get(getAdapterPosition());
             route.setExpanded(!route.isExpanded());

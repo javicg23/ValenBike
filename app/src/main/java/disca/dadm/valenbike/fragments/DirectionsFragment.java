@@ -75,8 +75,8 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private final boolean NEAREST_PARKING = false;
 
     private View rootView;
-    private String locationAddress, sourceAddress, destinationAddress;
-    private LatLng sourcePosition, destinationPosition, sourceStation, destinationStation, locationPosition;
+    private String locationAddress;
+    private LatLng sourcePosition, destinationPosition, locationPosition;
     private List<Station> allStation;
     private AutocompleteSupportFragment autocompleteSearchSource, autocompleteSearchDestination;
     private DataPassListener dataPassListener;
@@ -106,17 +106,13 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     }
 
     @Override
-    public void onAttach(@NonNull Context context)
-    {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         // This makes sure that the host activity has implemented the callback interface
         // If not, it throws an exception
-        try
-        {
+        try {
             dataPassListener = (DataPassListener) context;
-        }
-        catch (ClassCastException e)
-        {
+        } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement DataPassListener");
         }
     }
@@ -140,13 +136,11 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
             locationAddress = args.getString(SOURCE_ADDRESS);
             sourceText.setText(locationAddress);
-            sourceAddress = locationAddress;
 
             locationPosition = args.getParcelable(SOURCE_POSITION);
             sourcePosition = locationPosition;
 
-            destinationAddress = args.getString(DESTINATION_ADDRESS);
-            destinationText.setText(destinationAddress);
+            destinationText.setText(args.getString(DESTINATION_ADDRESS));
             destinationPosition = args.getParcelable(DESTINATION_POSITION);
 
             if (locationAddress.equals("")) {
@@ -242,7 +236,8 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
 
         sourceText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
 
             @Override
             public void beforeTextChanged(CharSequence s, int start,
@@ -252,7 +247,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
             @Override
             public void onTextChanged(CharSequence s, int start,
                                       int before, int count) {
-                if(s.toString().equals(locationAddress) && !locationAddress.equals("")) {
+                if (s.toString().equals(locationAddress) && !locationAddress.equals("")) {
                     locationCheck.setBackground(getResources().getDrawable(R.drawable.ic_my_location_accent_24dp, null));
                 } else {
                     locationCheck.setBackground(getResources().getDrawable(R.drawable.ic_my_location_light_grey_24dp, null));
@@ -288,7 +283,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         fabDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sourceText.getText().toString().trim().equals("") || destinationText.getText().toString().trim().equals("")){
+                if (sourceText.getText().toString().trim().equals("") || destinationText.getText().toString().trim().equals("")) {
                     Snackbar.make(rootView, getString(R.string.directions_no_source_destination), Snackbar.LENGTH_SHORT).show();
                 } else {
                     searchRoute();

@@ -27,7 +27,7 @@ public class MarkerClusterRenderer extends DefaultClusterRenderer<ClusterStation
 
     @Override
     protected void onBeforeClusterItemRendered(ClusterStation item, MarkerOptions markerOptions) {
-        if (item.isActive()){
+        if (item.isActive()) {
             if (item.isFreeBikes()) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             } else {

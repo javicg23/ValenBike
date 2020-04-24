@@ -64,6 +64,7 @@ public class InformationFragment extends Fragment {
         CustomFragmentStateAdapter(@NonNull FragmentActivity fragmentActivity) {
             super(fragmentActivity);
         }
+
         @NonNull
         @Override
         public Fragment createFragment(int position) {
@@ -80,6 +81,7 @@ public class InformationFragment extends Fragment {
             }
             return Objects.requireNonNull(result);
         }
+
         @Override
         public int getItemCount() {
             return 3;

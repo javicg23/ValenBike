@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.activities;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -9,6 +10,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -22,6 +24,7 @@ import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.utils.Tools;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, DataPassListener {
 
@@ -32,8 +35,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static final String TAG_DIRECTIONS = "directions";
 
     private BottomNavigationView navigationView;
-    String currentFragment;
-    Fragment.SavedState savedState;
+    private String currentFragment;
+    private Fragment.SavedState savedState;
+    private AlertDialog.Builder alert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +51,23 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
         // Display the Stations title on the ActionBar
         Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
-
-        // Starts the app with MapFragment
-        changeFragment(MapFragment.newInstance(), TAG_MAP);
+        alert = new AlertDialog.Builder(this);
+        alert.setTitle(R.string.alert_title);
+        alert.setMessage(R.string.alert_message);
+        alert.setCancelable(false);
+        alert.setPositiveButton(R.string.alert_try_again, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                showDialogStartMap();
+            }
+        });
+        alert.setNegativeButton(R.string.alert_close, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finishAndRemoveTask();
+            }
+        });
+        showDialogStartMap();
     }
 
     @Override
@@ -121,15 +139,16 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_information);
                 break;
         }
-
-        // Save state of map fragment
-        if (currentFragment == TAG_MAP) {
-            savedState = getSupportFragmentManager().saveFragmentInstanceState(getSupportFragmentManager().findFragmentByTag(currentFragment));
+        if (!currentFragment.equals(tag)) {
+            // Save state of map fragment
+            if (currentFragment.equals(TAG_MAP)) {
+                savedState = getSupportFragmentManager().saveFragmentInstanceState(Objects.requireNonNull(getSupportFragmentManager().findFragmentByTag(currentFragment)));
+            }
+            // Replace the existing Fragment by the new one
+            changeFragment(fragment, tag);
+            return true;
         }
-        // Replace the existing Fragment by the new one
-        changeFragment(fragment, tag);
-
-        return true;
+        return false;
     }
 
     @Override
@@ -139,16 +158,16 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
         return true;
     }
+
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if ((keyCode == KeyEvent.KEYCODE_BACK))
-        {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             backDirectionsButton();
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
+
     @Override
     public void passLocationToDirection(LatLng sourcePosition, String sourceAddress, LatLng destinationPosition, String destinationAddress) {
 
@@ -158,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             fragment = DirectionsFragment.newInstance();
         }
         // Save state of map fragment
-        if (currentFragment == TAG_MAP) {
+        if (currentFragment.equals(TAG_MAP)) {
             savedState = getSupportFragmentManager().saveFragmentInstanceState(Objects.requireNonNull(getSupportFragmentManager().findFragmentByTag(currentFragment)));
         }
 
@@ -203,14 +222,28 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     private void backDirectionsButton() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
+        if (!currentFragment.equals(TAG_MAP)) {
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
 
-        if (fragment == null) {
-            fragment = MapFragment.newInstance();
+            if (fragment == null) {
+                fragment = MapFragment.newInstance();
+            }
+            fragment.setInitialSavedState(savedState);
+            Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
+            navigationView.getMenu().getItem(0).setChecked(true);
+            changeFragment(fragment, TAG_MAP);
+            restoreMapFragmentFromDirections();
+        } else {
+            moveTaskToBack(true);
         }
-        fragment.setInitialSavedState(savedState);
+    }
 
-        changeFragment(fragment, TAG_MAP);
-        restoreMapFragmentFromDirections();
+    private void showDialogStartMap() {
+        if (!Tools.isNetworkConnected(this)) {
+            alert.create().show();
+        } else {
+            // Starts the app with MapFragment
+            changeFragment(MapFragment.newInstance(), TAG_MAP);
+        }
     }
 }
