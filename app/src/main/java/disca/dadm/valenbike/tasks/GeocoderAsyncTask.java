@@ -44,9 +44,9 @@ public class GeocoderAsyncTask extends AsyncTask<ParametersGeocoderTask, Void, A
             }
         }
         // Update the user interface
-        if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_GPS){
+        if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_GPS) {
             listener.receivedAddressGPS(res);
-        } else if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_MARKER){
+        } else if (parametersGeocoderTask.getLocation() == ParametersGeocoderTask.LOCATION_MARKER) {
             listener.receivedAddressMarker(res);
         } else {
             listener.receivedAddressStation(res);

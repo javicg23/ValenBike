@@ -84,4 +84,8 @@
     <string name="fav_filter_menu_station">Estaciones favoritas</string>
     <string name="notify_filter_menu_station">Estaciones con avisos</string>
     <string name="selection_filter_menu_station">Filtrar por…</string>
+    <string name="alert_title">No tienes conexión a Internet</string>
+    <string name="alert_message">Por favor, activa Wifi o datos para tener acceso a Internet y poder utilizar correctamente la aplicación</string>
+    <string name="alert_try_again">Volver a intentar</string>
+    <string name="alert_close">Cerrar aplicación</string>
 </resources>

@@ -6,6 +6,8 @@ import disca.dadm.valenbike.models.Station;
 
 public interface OnGeocoderTaskCompleted {
     void receivedAddressGPS(String address);
+
     void receivedAddressMarker(String address);
+
     void receivedAddressStation(String address);
 }

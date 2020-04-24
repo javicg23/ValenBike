@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.google.android.gms.maps.model.LatLng;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,8 +62,8 @@ public class RouteAsyncTask extends AsyncTask<ParametersRouteTask, Void, String>
         builder.appendQueryParameter("origin", origin.latitude + "," + origin.longitude);
         builder.appendQueryParameter("destination", destination.latitude + "," + destination.longitude);
         builder.appendQueryParameter("mode", mode);
-        builder.appendQueryParameter("language","es");
-        builder.appendQueryParameter("units","metric");
+        builder.appendQueryParameter("language", "es");
+        builder.appendQueryParameter("units", "metric");
         builder.appendQueryParameter("key", context.getResources().getString(R.string.google_maps_directions_key));
         try {
             // Launch the related GET request

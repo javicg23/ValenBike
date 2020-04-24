@@ -43,7 +43,7 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
     }
 
     @Override
-    protected List<Station> doInBackground(Integer...integers) {
+    protected List<Station> doInBackground(Integer... integers) {
         int numStation = integers[0];
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("https");
@@ -54,7 +54,7 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
         if (numStation != 0) {
             builder.appendPath(Integer.toString(numStation));
         }
-        builder.appendQueryParameter("contract","valence");
+        builder.appendQueryParameter("contract", "valence");
         builder.appendQueryParameter("apiKey", context.getResources().getString(R.string.jcdecaux_api));
 
         List<Station> stations = null;
@@ -68,7 +68,8 @@ public class PetitionAsyncTask extends AsyncTask<Integer, Void, List<Station>> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 Gson gson = new Gson();
                 if (numStation == 0) {
-                    stations = gson.fromJson(reader, new TypeToken<ArrayList<Station>>(){}.getType());
+                    stations = gson.fromJson(reader, new TypeToken<ArrayList<Station>>() {
+                    }.getType());
                 } else {
                     stations = new ArrayList<>();
                     stations.add(gson.fromJson(reader, Station.class));

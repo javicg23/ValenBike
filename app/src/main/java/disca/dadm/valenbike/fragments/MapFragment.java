@@ -93,14 +93,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private final float CAMERA_ZOOM_STREET = 17;
     private final float CAMERA_ZOOM_CITY = 12;
     private final float CAMERA_ZOOM_NEIGHBORHOOD = 15;
-    private final double POSITION_MARKER_SHEET = - 0.001;
+    private final double POSITION_MARKER_SHEET = -0.001;
     private final String TAG_MARKER_SEARCH = "SEARCH";
     private final String TAG_MAP_TYPE = "MAP_TYPE";
     private final String TAG_CAMERA_POSITION = "CAMERA_POSITION";
     private final String TAG_ROUTE = "ROUTE";
     // Create a LatLngBounds that includes the ValenBisi locations with an edge.
-    public static  final LatLngBounds LIMIT_MAP = new LatLngBounds(
-            new LatLng(39.414708, -0.480004), new LatLng(39.529877,  -0.260633));
+    public static final LatLngBounds LIMIT_MAP = new LatLngBounds(
+            new LatLng(39.414708, -0.480004), new LatLng(39.529877, -0.260633));
     private static final int ROUTE_MARKER = 0;
     private static final int ROUTE_STATION = 1;
     public static final String ROUTES_RESPONSES = "route_responses";
@@ -245,17 +245,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     @Override
-    public void onAttach(@NonNull Context context)
-    {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         // This makes sure that the host activity has implemented the callback interface
         // If not, it throws an exception
-        try
-        {
+        try {
             dataPassListener = (DataPassListener) context;
-        }
-        catch (ClassCastException e)
-        {
+        } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement DataPassListener");
         }
     }
@@ -411,7 +407,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             String formattedDistance = dfDistance.format(distanceKm);
 
             int mode = Route.MODE_WALK;
-            if (i % 2 ==1) {
+            if (i % 2 == 1) {
                 mode = Route.MODE_BIKE;
             }
             // obtain steps
@@ -438,7 +434,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private String getGloblalDurationRoute() {
         int durationJourney = 0;
         for (int i = 0; i < routeResponses.size(); i++) {
-            durationJourney += getLocalDurationTimeRouteBy(routeResponses.get(i),"duration");
+            durationJourney += getLocalDurationTimeRouteBy(routeResponses.get(i), "duration");
         }
         int durationMin = durationJourney / 60;
         return String.valueOf(durationMin);
@@ -447,7 +443,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private String getGlobalDistanceRoute() {
         int distanceJourney = 0;
         for (int i = 0; i < routeResponses.size(); i++) {
-            distanceJourney += getLocalDurationTimeRouteBy(routeResponses.get(i),"distance");
+            distanceJourney += getLocalDurationTimeRouteBy(routeResponses.get(i), "distance");
         }
         // formatted distance to kilometers with one decimal
         double distanceKm = (double) distanceJourney / 1000;
@@ -637,8 +633,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         // Constrain the camera target to the Valencia bounds.
         map.setLatLngBoundsForCameraTarget(LIMIT_MAP);
         /*TODO  cambiarlo para que sea dinamico, es decir, que dependa de la altura del buscador y los elementos
-        *  en vez de meterlo directamente en numero fijo*/
-        map.setPadding(0,170,0,0);
+         *  en vez de meterlo directamente en numero fijo*/
+        map.setPadding(0, 170, 0, 0);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
@@ -663,17 +659,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                if (marker.getTitle() == null){
+                if (marker.getTitle() == null) {
                     // group of stations
                     LatLng position = marker.getPosition();
                     float zoom = map.getCameraPosition().zoom + 2;
                     moveCamera(position, zoom);
-                } else if (marker.getTitle().equals(TAG_MARKER_SEARCH)){
+                } else if (marker.getTitle().equals(TAG_MARKER_SEARCH)) {
                     // search marker or long click
                     markerSearch.remove();
                     autocompleteSearch.setText("");
                     markerSearch = null;
-                } else if (!requestInProgress){
+                } else if (!requestInProgress) {
                     // station
                     requestStations(Integer.parseInt(marker.getTitle()));
                 }
@@ -810,6 +806,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         markerOptionsSearch = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(TAG_MARKER_SEARCH);
         markerSearch = map.addMarker(markerOptionsSearch);
     }
+
     /**
      * Updates the user interface to display the new latitude and longitude.
      * It will also start an asynchronous task to translate those coordinates into a human readable address.
@@ -823,7 +820,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void changeMapType(int mapType) {
-        if (this.mapType != mapType){
+        if (this.mapType != mapType) {
             this.mapType = mapType;
             map.setMapType(mapType);
         }
@@ -843,8 +840,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 item.setChecked(true);
-                switch (item.getItemId()){
-                    case R.id.map_type_traffic :
+                switch (item.getItemId()) {
+                    case R.id.map_type_traffic:
                         changeMapType(GoogleMap.MAP_TYPE_NORMAL);
                         break;
                     case R.id.map_type_satellite:
@@ -888,10 +885,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void requestStations(int number) {
-        if (isNetworkConnected(Objects.requireNonNull(getContext()))){
+        if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
             showProgressDialog();
             requestInProgress = true;
-            PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(),this);
+            PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(), this);
             petitionAsyncTask.execute(number);
         }
     }
@@ -955,14 +952,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         numberStation.setText(String.valueOf(station.getNumber()));
         address.setText(station.getAddress());
 
-        if (station.isActive()){
+        if (station.isActive()) {
             bikes.setText(String.valueOf(station.getAvailableBikes()));
             stands.setText(String.valueOf(station.getAvailableBikeStands()));
 
             directions.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    dialog.hide();
+                    dialog.dismiss();
                     stationLatLng = new LatLng(station.getPosition().getLat(), station.getPosition().getLng());
                     routeDirections = ROUTE_STATION;
                     requestAddressDirections();
@@ -972,12 +969,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked){
+                    if (isChecked) {
                         reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
-                        Toast.makeText(getActivity(),"reminder true",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "reminder true", Toast.LENGTH_SHORT).show();
                     } else {
                         reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp, null));
-                        Toast.makeText(getActivity(),"reminder false",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "reminder false", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -999,12 +996,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
+                if (isChecked) {
                     favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp, null));
-                    Toast.makeText(getActivity(),"favourite true",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "favourite true", Toast.LENGTH_SHORT).show();
                 } else {
                     favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_border_magenta_24dp, null));
-                    Toast.makeText(getActivity(),"favourite false",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "favourite false", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1054,7 +1051,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             super.onLocationAvailability(locationAvailability);
             map.setMyLocationEnabled(locationAvailability.isLocationAvailable());
             locationActive = locationAvailability.isLocationAvailable();
-            if (locationAvailability.isLocationAvailable()){
+            if (locationAvailability.isLocationAvailable()) {
                 fabLocation.show();
             } else {
                 fabLocation.hide();

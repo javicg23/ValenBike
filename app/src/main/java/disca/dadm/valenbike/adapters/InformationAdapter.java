@@ -80,6 +80,7 @@ public class InformationAdapter extends RecyclerView.Adapter<InformationAdapter.
                 }
             });
         }
+
         private void changeExpandibleLayout() {
             Information information = informationList.get(getAdapterPosition());
             information.setExpanded(!information.isExpanded());

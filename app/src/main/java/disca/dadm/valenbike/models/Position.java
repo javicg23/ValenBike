@@ -25,7 +25,9 @@ public class Position {
         this.lng = value;
     }
 
-    public Position getPosition() { return this; }
+    public Position getPosition() {
+        return this;
+    }
 
     public String toString() {
         return lat + ", " + lng;
