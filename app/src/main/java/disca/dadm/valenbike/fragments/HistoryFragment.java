@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
@@ -86,13 +87,17 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
     }
 
     private void initData(){
-        if (!historyList.isEmpty()) delete.setVisibility(View.VISIBLE);
         int time=0, money=0;
 
-        for(int i =0; i<historyList.size(); i++) {
-            time+= historyList.get(i).getTotalTime();
-            money+= historyList.get(i).getTotalCost();
+        if (!historyList.isEmpty()) {
+            delete.setVisibility(View.VISIBLE);
+            for(int i =0; i<historyList.size(); i++) {
+                time+= historyList.get(i).getTotalTime();
+                money+= historyList.get(i).getTotalCost();
+            }
         }
+
+        else delete.setVisibility(View.INVISIBLE);
 
         totalTime.setText(time + " ");
         totalMoney.setText(money + " €");
@@ -105,7 +110,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             adapter.deleteItem(viewHolder.getAdapterPosition());
             showSnackBar(deleted, positionDeleted);
 
-            if (this.historyList.isEmpty()) delete.setVisibility(View.INVISIBLE);
+            //if (this.historyList.isEmpty()) delete.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -117,8 +122,8 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 adapter.clear();
-                delete.setVisibility(View.INVISIBLE);
-
+                //delete.setVisibility(View.INVISIBLE);
+                initData();
             }
         });
         builder.setNegativeButton("NO",null);
@@ -132,10 +137,13 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
                 public void onClick(View v) {
                     adapter.restoreItem(deleted, position);
                     delete.setVisibility(View.VISIBLE);
+                    initData();
                 }
             });
             snackbar.setActionTextColor(Color.BLUE);
             snackbar.show();
+
+            initData();
     }
 
 }
