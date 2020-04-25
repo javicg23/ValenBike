@@ -546,6 +546,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     }
 
     private void clearMap() {
+        autocompleteSearch.setText("");
         if (markerSearch != null) {
             markerSearch.remove();
         }
@@ -557,7 +558,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             polylinesRoutes.get(i).remove();
         }
         polylinesRoutes.clear();
-        stringResponses.clear();
+        if (stringResponses != null) {
+            stringResponses.clear();
+        }
         autocompleteSearch.setText("");
     }
 
@@ -885,6 +888,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         autocompleteSearch.setCountry("ES");
         autocompleteSearch.setLocationRestriction(RectangularBounds.newInstance(LIMIT_MAP));
         autocompleteSearch.setHint(getString(R.string.map_search_hint));
+        autocompleteSearch.setText("");
 
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteSearch.setOnPlaceSelectedListener(new PlaceSelectionListener() {
