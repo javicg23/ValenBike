@@ -523,6 +523,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             }
         });
 
+        fabLocation.hide();
         fabLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -920,7 +921,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         receivedStations = RECEIVED_STATIONS_YES;
         /*todo remove this assignment*/
         stations = getStations();
-
 
         ClusterManager<ClusterStation> clusterManager = new ClusterManager<>(Objects.requireNonNull(getActivity()), map);
         clusterManager.setRenderer(new MarkerClusterRenderer(getActivity(), map, clusterManager));
