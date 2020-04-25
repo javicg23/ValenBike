@@ -109,25 +109,11 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             }
         });
 
-        holder.reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-                    Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_notification)
-                            .setContentTitle("¡Ya hay bicis disponibles!")
-                            .setContentText("En " + stationsList.get(position).getAddress() + " ya hay bicis disponibles")
-                            .setPriority(NotificationCompat.PRIORITY_HIGH)
-                            .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                            .build();
-                    notificationManagerCompat = NotificationManagerCompat.from(context);
-                    notificationManagerCompat.notify(1, notification);
-                } else {
-                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
-                }
-            }
-        });
+        boolean isReminderCheck = stationsList.get(position).isReminderCheck();
+        holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
+
+        boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
+        holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
     }
 
     @Override
@@ -205,11 +191,39 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
+                    StationGUI station = stationsList.get(getAdapterPosition());
+                    if (!station.isReminderCheck()) {
+                        station.setFavouriteCheck(!station.isFavouriteCheck());
                         favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
                     } else {
+                        station.setFavouriteCheck(!station.isFavouriteCheck());
                         favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
                     }
+                    notifyItemChanged(getAdapterPosition());
+                }
+            });
+
+            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    StationGUI station = stationsList.get(getAdapterPosition());
+                    if (!station.isReminderCheck()){
+                        station.setReminderCheck(!station.isReminderCheck());
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_notification)
+                                .setContentTitle("¡Ya hay bicis disponibles!")
+                                .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                .build();
+                        notificationManagerCompat = NotificationManagerCompat.from(context);
+                        notificationManagerCompat.notify(1, notification);
+                    } else {
+                        station.setReminderCheck(!station.isReminderCheck());
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                    }
+                    notifyItemChanged(getAdapterPosition());
                 }
             });
 
@@ -221,5 +235,6 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             station.setArrowDown(!station.isArrowDown());
             notifyItemChanged(getAdapterPosition());
         }
+
     }
 }
