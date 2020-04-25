@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -70,50 +71,60 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
     @Override
     public void onBindViewHolder(@NonNull final StationsAdapter.StationsViewHolder holder, final int position) {
-        boolean isExpanded = stationsList.get(position).isExpanded();
-        TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
-        holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-        boolean isArrowDown = stationsList.get(position).isExpanded();
-        holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
-
-        progressDialog = getDialogProgressBar(context).create();
-
         stationGUI = stationsList.get(position);
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
-        holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
-        holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
-
-        // TODO: Implementar calculo de distancia desde la posicion actual hasta la estacion.
-        //holder.distance.setText(stationGUI.getTime());
-
         holder.address.setText(stationGUI.getAddress());
+        if (stationGUI.getStatus().equals("OPEN")) {
+            boolean isExpanded = stationsList.get(position).isExpanded();
+            TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
+            holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+            boolean isArrowDown = stationsList.get(position).isExpanded();
+            holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
 
-        long now = new Date().getTime();
-        String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
-        holder.lastUpdate.setText(dateString);
+            progressDialog = getDialogProgressBar(context).create();
 
-        holder.banking.setSelected(stationGUI.getBanking());
 
-        holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showProgressDialog();
-                coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
-            }
-        });
+            holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
+            holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
 
-        holder.ibShowMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dataPassListener.passStationToMap(stationGUI.getNumber());
-            }
-        });
+            long now = new Date().getTime();
+            String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
+            holder.lastUpdate.setText(dateString);
 
-        boolean isReminderCheck = stationsList.get(position).isReminderCheck();
-        holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
+            holder.banking.setSelected(stationGUI.getBanking());
 
-        boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
-        holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
+            holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showProgressDialog();
+                    coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
+                }
+            });
+
+            holder.ibShowMap.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dataPassListener.passStationToMap(stationGUI.getNumber());
+                }
+            });
+
+            boolean isReminderCheck = stationsList.get(position).isReminderCheck();
+            holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
+
+            boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
+            holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
+        } else {
+            holder.constraintLayout.setOnClickListener(null);
+            holder.expandableLayout.setVisibility(View.GONE);
+            holder.ivArrow.setVisibility(View.GONE);
+            holder.reminder.setVisibility(View.GONE);
+            holder.numFreeBikes.setVisibility(View.GONE);
+            holder.numFreeGaps.setVisibility(View.GONE);
+            holder.ivBike.setVisibility(View.GONE);
+            holder.ivParking.setVisibility(View.GONE);
+            holder.favourite.setVisibility(View.GONE);
+            holder.closedStation.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -152,15 +163,17 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     class StationsViewHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "StationsViewHolder";
 
-        private ConstraintLayout expandableLayout;
+        private ConstraintLayout expandableLayout, constraintLayout;
         private TextView numberStation, numFreeBikes, numFreeGaps, distance, address, lastUpdate;
-        private ImageView ivArrow, banking;
+        private ImageView ivArrow, banking, ivBike, ivParking;
         private CheckBox reminder, favourite;
         private ImageButton ibShowMap, ibShowDistance;
+        private Button closedStation;
 
         public StationsViewHolder(@NonNull final View itemView) {
             super(itemView);
             expandableLayout = itemView.findViewById(R.id.expandableLayout);
+            constraintLayout = itemView.findViewById(R.id.stationRowLayout);
             numberStation = itemView.findViewById(R.id.sheetNumberStation);
             numFreeBikes = itemView.findViewById(R.id.tvNumFreeBikes);
             numFreeGaps = itemView.findViewById(R.id.tvNumFreeGaps);
@@ -173,8 +186,11 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             ivArrow = itemView.findViewById(R.id.ivArrow);
             ibShowDistance = itemView.findViewById(R.id.ibShowDistance);
             ibShowMap = itemView.findViewById(R.id.ibShowMap);
+            closedStation = itemView.findViewById(R.id.btnClosedStation);
+            ivBike = itemView.findViewById(R.id.ivBikeStation);
+            ivParking = itemView.findViewById(R.id.ivParkingStation);
 
-            numberStation.setOnClickListener(new View.OnClickListener() {
+            constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     changeExpandibleLayout();
