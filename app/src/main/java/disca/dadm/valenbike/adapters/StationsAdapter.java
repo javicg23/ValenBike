@@ -181,6 +181,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 }
             });
 
+            
             ivArrow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
