@@ -1,6 +1,8 @@
 package disca.dadm.valenbike.adapters;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.media.Image;
 import android.text.format.DateFormat;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -33,6 +37,7 @@ import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.StationGUI;
 
+import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 
@@ -43,6 +48,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     private DataPassListener dataPassListener;
     private Context context;
     private StationGUI stationGUI;
+    private NotificationManagerCompat notificationManagerCompat;
 
     // loading progress
     private AlertDialog progressDialog;
@@ -63,7 +69,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     }
 
     @Override
-    public void onBindViewHolder(@NonNull StationsAdapter.StationsViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final StationsAdapter.StationsViewHolder holder, final int position) {
         boolean isExpanded = stationsList.get(position).isExpanded();
         TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
         holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
@@ -100,6 +106,26 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             @Override
             public void onClick(View v) {
                 dataPassListener.passStationToMap(stationGUI.getNumber());
+            }
+        });
+
+        holder.reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                    Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle("¡Ya hay bicis disponibles!")
+                            .setContentText("En " + stationsList.get(position).getAddress() + " ya hay bicis disponibles")
+                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                            .build();
+                    notificationManagerCompat = NotificationManagerCompat.from(context);
+                    notificationManagerCompat.notify(1, notification);
+                } else {
+                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                }
             }
         });
     }
@@ -187,16 +213,6 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 }
             });
 
-            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked){
-                        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-                    } else {
-                        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
-                    }
-                }
-            });
         }
 
         private void changeExpandibleLayout() {

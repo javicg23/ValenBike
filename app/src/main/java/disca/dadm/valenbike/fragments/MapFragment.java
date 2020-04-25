@@ -3,6 +3,7 @@ package disca.dadm.valenbike.fragments;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -27,6 +28,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -88,6 +91,7 @@ import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 import disca.dadm.valenbike.utils.Tools;
 
+import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
@@ -156,6 +160,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private DataPassListener dataPassListener;
 
     private int idStationResponse;
+    private NotificationManagerCompat notificationManagerCompat;
 
     public MapFragment() {
         // Required empty public constructor
@@ -949,7 +954,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private void initDialogStation(final BottomSheetDialog dialog, final View dialogView, final Station station) {
         TextView numberStation = dialogView.findViewById(R.id.sheetNumberStation);
-        TextView address = dialogView.findViewById(R.id.sheetAddress);
+        final TextView address = dialogView.findViewById(R.id.sheetAddress);
         TextView bikes = dialogView.findViewById(R.id.sheetAvailableBikes);
         final TextView stands = dialogView.findViewById(R.id.sheetAvailableStands);
         TextView lastUpdate = dialogView.findViewById(R.id.sheetLastUpdate);
@@ -983,10 +988,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
                         reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
-                        Toast.makeText(getActivity(), "reminder true", Toast.LENGTH_SHORT).show();
+                        Notification notification = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_notification)
+                                .setContentTitle("¡Ya hay bicis disponibles!")
+                                .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                .build();
+                        notificationManagerCompat = NotificationManagerCompat.from(getContext());
+                        notificationManagerCompat.notify(1, notification);
                     } else {
                         reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp, null));
-                        Toast.makeText(getActivity(), "reminder false", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

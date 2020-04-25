@@ -1,6 +1,9 @@
 package disca.dadm.valenbike.activities;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static final String TAG_HISTORY = "history";
     private static final String TAG_INFORMATION = "information";
     private static final String TAG_DIRECTIONS = "directions";
+    public static final String CHANNEL_ID = "channel";
 
     private BottomNavigationView navigationView;
     private String currentFragment;
@@ -43,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         // Sets the listener to be notified when any element of the BottomNavigationView is clicked
         navigationView = findViewById(R.id.bottomView);
@@ -68,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             }
         });
         showDialogStartMap();
+
+        // Creating notification channel
+        createNotificationChannel();
     }
 
     @Override
@@ -278,5 +284,15 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private void changeTitleAndMenuCheck() {
         Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);
         navigationView.getMenu().getItem(0).setChecked(true);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.channel_name), NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription(getString(R.string.channel_description));
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            Objects.requireNonNull(manager).createNotificationChannel(channel);
+        }
     }
 }
