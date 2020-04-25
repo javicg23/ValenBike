@@ -46,8 +46,7 @@ public class StationsFragment extends Fragment {
     }
 
     public static StationsFragment newInstance() {
-        StationsFragment fragment = new StationsFragment();
-        return fragment;
+        return new StationsFragment();
     }
 
     @Override

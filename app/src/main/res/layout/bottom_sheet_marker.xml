@@ -145,6 +145,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/button_rounded"
             android:backgroundTint="@color/violet"
+            android:padding="8dp"
             android:text="@string/sheet_station_closed"
             android:textColor="@android:color/white"
             android:clickable="false"

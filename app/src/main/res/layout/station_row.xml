@@ -15,6 +15,7 @@
         app:cardElevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/stationRowLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -52,6 +53,22 @@
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/btnClosedStation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_marginBottom="88dp"
+                android:background="@drawable/button_rounded"
+                android:backgroundTint="@color/violet"
+                android:clickable="false"
+                android:padding="8dp"
+                android:text="@string/row_station_closed"
+                android:textColor="@android:color/white"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@+id/ivArrow"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
             <CheckBox
                 android:id="@+id/sheetFavourite"
                 android:layout_width="40dp"
@@ -99,6 +116,7 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
+                    android:id="@+id/ivBikeStation"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginLeft="10dp"
@@ -129,6 +147,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
                 <ImageView
+                    android:id="@+id/ivParkingStation"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginEnd="5dp"
