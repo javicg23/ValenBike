@@ -236,7 +236,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             outState.putParcelable(TAG_MARKER_SEARCH, markerOptionsSearch);
         }
         outState.putInt(TAG_MAP_TYPE, mapType);
-        outState.putParcelable(TAG_CAMERA_POSITION, map.getCameraPosition());
+        //outState.putParcelable(TAG_CAMERA_POSITION, map.getCameraPosition());
         outState.putStringArrayList(TAG_ROUTE, stringResponses);
         super.onSaveInstanceState(outState);
         if (mapView != null) {

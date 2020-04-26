@@ -227,8 +227,8 @@ public class Tools {
 
             for (int j = 0; j < dbList.size(); j++) {
                 if (dbList.get(j).getNumber() == stationList.get(i).getNumber()) {
-                    newStation.setFavourite(dbList.get(j).isFavourite());
-                    newStation.setNotifyBikes(dbList.get(j).getNotifyBikes());
+                    newStation.setFavouriteCheck(dbList.get(j).isFavourite());
+                    newStation.setReminderCheck(dbList.get(j).getNotifyBikes());
                 }
             }
             stationsGui.add(newStation);

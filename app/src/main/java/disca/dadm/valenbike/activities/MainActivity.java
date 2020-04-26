@@ -104,7 +104,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment fragment = null;
         String tag = null;
-
         // Determine the action to take place according to the Id of the action selected
         switch (item.getItemId()) {
 

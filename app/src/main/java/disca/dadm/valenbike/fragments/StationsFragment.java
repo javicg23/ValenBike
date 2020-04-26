@@ -63,8 +63,7 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
     }
 
     public static StationsFragment newInstance() {
-        StationsFragment fragment = new StationsFragment();
-        return fragment;
+        return new StationsFragment();
     }
 
     @Override
@@ -223,7 +222,7 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
     }
 
     public void addUpdatedStation(StationGUI stationGui) {
-        StationDb stationDb = new StationDb(stationGui.getNumber(), stationGui.isFavourite(), stationGui.getNotifyBikes());
+        StationDb stationDb = new StationDb(stationGui.getNumber(), stationGui.isFavouriteCheck(), stationGui.isReminderCheck());
         updatedStations.add(stationDb);
     }
 
@@ -236,7 +235,7 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         List<StationGUI> favouriteStations = new ArrayList<>();
 
         for (int i = 0; i < stationsList.size(); i++) {
-            if (stationsList.get(i).isFavourite()) {
+            if (stationsList.get(i).isFavouriteCheck()) {
                 favouriteStations.add(stationsList.get(i));
             }
         }
@@ -249,7 +248,7 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         List<StationGUI> notifiedStations = new ArrayList<>();
 
         for (int i = 0; i < stationsList.size(); i++) {
-            if (stationsList.get(i).getNotifyBikes()) {
+            if (stationsList.get(i).isReminderCheck()) {
                 notifiedStations.add(stationsList.get(i));
             }
         }

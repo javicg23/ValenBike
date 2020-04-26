@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -61,6 +62,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         this.stationsList = stationsList;
         this.dataPassListener = dataPassListener;
         this.context = context;
+
     }
 
     @NonNull
@@ -72,89 +74,99 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
     @Override
     public void onBindViewHolder(@NonNull final StationsAdapter.StationsViewHolder holder, final int position) {
-        boolean isExpanded = stationsList.get(position).isExpanded();
-        TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
-        holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-        boolean isArrowDown = stationsList.get(position).isExpanded();
-        holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
-
-        progressDialog = getDialogProgressBar(context).create();
-
         stationGUI = stationsList.get(position);
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
-        holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
-        holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
         holder.address.setText(stationGUI.getAddress());
+        if (stationGUI.getStatus().equals("OPEN")) {
+            boolean isExpanded = stationsList.get(position).isExpanded();
+            TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
+            holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+            boolean isArrowDown = stationsList.get(position).isExpanded();
+            holder.ivArrow.setImageResource(isArrowDown ? R.drawable.ic_keyboard_arrow_up_black_24dp : R.drawable.ic_keyboard_arrow_down_black_24dp);
 
-        long now = new Date().getTime();
-        String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
+            progressDialog = getDialogProgressBar(context).create();
 
-        holder.lastUpdate.setText(dateString);
-        holder.banking.setSelected(stationGUI.getBanking());
-        holder.showRoute.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showProgressDialog();
-                coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
-            }
-        });
-        holder.showInMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dataPassListener.passStationToMap(stationGUI.getNumber());
-            }
-        });
+            stationGUI = stationsList.get(position);
+            holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
+            holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
+            holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
+            holder.address.setText(stationGUI.getAddress());
 
-        if (stationGUI.getNotifyBikes()) {
-            holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-            holder.reminder.setChecked(true);
-        } else {
-            holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
-            holder.reminder.setChecked(false);
-        }
-        holder.reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-                    Notification notification = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_notification)
-                            .setContentTitle("¡Ya hay bicis disponibles!")
-                            .setContentText("En " + stationsList.get(position).getAddress() + " ya hay bicis disponibles")
-                            .setPriority(NotificationCompat.PRIORITY_HIGH)
-                            .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                            .build();
-                    notificationManagerCompat = NotificationManagerCompat.from(context);
-                    notificationManagerCompat.notify(1, notification);
-                } else {
-                    holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+            long now = new Date().getTime();
+            String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
+
+            holder.lastUpdate.setText(dateString);
+            holder.banking.setSelected(stationGUI.getBanking());
+            holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showProgressDialog();
+                    coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
                 }
-            }
-        });
-
-        // Favourite check
-        if (stationGUI.isFavourite()) {
-            holder.favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
-            holder.favourite.setChecked(true);
-        } else {
-            holder.favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
-            holder.favourite.setChecked(false);
-        }
-        holder.favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    holder.favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
-                    stationsList.get(position).setFavourite(true);
-                } else {
-                    holder.favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
-                    stationsList.get(position).setFavourite(false);
+            });
+            holder.ibShowMap.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dataPassListener.passStationToMap(stationGUI.getNumber());
                 }
+            });
 
-                fragmentStations.addUpdatedStation(stationsList.get(position));
-            }
-        });
+            boolean isReminderCheck = stationsList.get(position).isReminderCheck();
+            holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
 
+            boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
+            holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
+
+            // Notifications check
+            holder.reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked){
+                        holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                        stationsList.get(position).setReminderCheck(true);
+                        Notification notification = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_notification)
+                                .setContentTitle("¡Ya hay bicis disponibles!")
+                                .setContentText("En " + stationsList.get(position).getAddress() + " ya hay bicis disponibles")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                .build();
+                        notificationManagerCompat = NotificationManagerCompat.from(context);
+                        notificationManagerCompat.notify(1, notification);
+                    } else {
+                        holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                        stationsList.get(position).setReminderCheck(false);
+                    }
+                    fragmentStations.addUpdatedStation(stationsList.get(position));
+                }
+            });
+
+            // Favourite check
+            holder.favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        holder.favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+                        stationsList.get(position).setFavouriteCheck(true);
+                    } else {
+                        holder.favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+                        stationsList.get(position).setFavouriteCheck(false);
+                    }
+                    fragmentStations.addUpdatedStation(stationsList.get(position));
+                }
+            });
+        } else {
+            holder.constraintLayout.setOnClickListener(null);
+            holder.expandableLayout.setVisibility(View.GONE);
+            holder.ivArrow.setVisibility(View.GONE);
+            holder.reminder.setVisibility(View.GONE);
+            holder.numFreeBikes.setVisibility(View.GONE);
+            holder.numFreeGaps.setVisibility(View.GONE);
+            holder.ivBike.setVisibility(View.GONE);
+            holder.ivParking.setVisibility(View.GONE);
+            holder.favourite.setVisibility(View.GONE);
+            holder.closedStation.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -190,15 +202,17 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     class StationsViewHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "StationsViewHolder";
 
-        private ConstraintLayout expandableLayout;
+        private ConstraintLayout expandableLayout, constraintLayout;
         private TextView numberStation, numFreeBikes, numFreeGaps, distance, address, lastUpdate;
-        private ImageView ivArrow, banking;
+        private ImageView ivArrow, banking, ivBike, ivParking;
         private CheckBox reminder, favourite;
-        private ImageButton showRoute, showInMap;
+        private ImageButton ibShowMap, ibShowDistance;
+        private Button closedStation;
 
         public StationsViewHolder(@NonNull final View itemView) {
             super(itemView);
             expandableLayout = itemView.findViewById(R.id.expandableLayout);
+            constraintLayout = itemView.findViewById(R.id.stationRowLayout);
             numberStation = itemView.findViewById(R.id.sheetNumberStation);
             numFreeBikes = itemView.findViewById(R.id.tvNumFreeBikes);
             numFreeGaps = itemView.findViewById(R.id.tvNumFreeGaps);
@@ -209,10 +223,13 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             reminder = itemView.findViewById(R.id.sheetReminder);
             favourite = itemView.findViewById(R.id.sheetFavourite);
             ivArrow = itemView.findViewById(R.id.ivArrow);
-            showRoute = itemView.findViewById(R.id.ibShowDistance);
-            showInMap = itemView.findViewById(R.id.ibShowMap);
+            ibShowDistance = itemView.findViewById(R.id.ibShowDistance);
+            ibShowMap = itemView.findViewById(R.id.ibShowMap);
+            closedStation = itemView.findViewById(R.id.btnClosedStation);
+            ivBike = itemView.findViewById(R.id.ivBikeStation);
+            ivParking = itemView.findViewById(R.id.ivParkingStation);
 
-            numberStation.setOnClickListener(new View.OnClickListener() {
+            constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     changeExpandibleLayout();
@@ -226,6 +243,45 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 }
             });
 
+            favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    StationGUI station = stationsList.get(getAdapterPosition());
+                    if (!station.isReminderCheck()) {
+                        station.setFavouriteCheck(!station.isFavouriteCheck());
+                        favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+                    } else {
+                        station.setFavouriteCheck(!station.isFavouriteCheck());
+                        favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+                    }
+                    notifyItemChanged(getAdapterPosition());
+                }
+            });
+
+            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    StationGUI station = stationsList.get(getAdapterPosition());
+                    if (!station.isReminderCheck()){
+                        station.setReminderCheck(!station.isReminderCheck());
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                        Notification notification = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_notification)
+                                .setContentTitle("¡Ya hay bicis disponibles!")
+                                .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                .build();
+                        notificationManagerCompat = NotificationManagerCompat.from(context);
+                        notificationManagerCompat.notify(1, notification);
+                    } else {
+                        station.setReminderCheck(!station.isReminderCheck());
+                        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                    }
+                    notifyItemChanged(getAdapterPosition());
+                }
+            });
+
         }
 
         private void changeExpandibleLayout() {
@@ -234,5 +290,6 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             station.setArrowDown(!station.isArrowDown());
             notifyItemChanged(getAdapterPosition());
         }
+
     }
 }
