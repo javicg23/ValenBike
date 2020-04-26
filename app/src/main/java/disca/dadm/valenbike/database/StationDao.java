@@ -9,29 +9,29 @@ import androidx.room.Update;
 
 import java.util.List;
 
-import disca.dadm.valenbike.database.Station;
+import disca.dadm.valenbike.database.StationDb;
 
 @Dao
 public interface StationDao {
 
     @Query("SELECT * FROM station")
-    List<Station> getStations();
+    List<StationDb> getStations();
 
     @Query("SELECT * FROM station WHERE station.is_favourite ='true'")
-    List<Station> getFavouriteStations();
+    List<StationDb> getFavouriteStations();
 
-    @Query("SELECT * FROM station WHERE station.notifyBikes = 'true'")
-    List<Station> getNotifiedBikeStations();
+    @Query("SELECT * FROM station WHERE station.notify_bikes = 'true'")
+    List<StationDb> getNotifiedBikeStations();
 
-    @Query("SELECT * FROM station WHERE station.notifyGaps = 'true'")
-    List<Station> getNotifiedGapStations();
+    @Query("SELECT * FROM station WHERE station.number = :number")
+    StationDb getStationByNumber(int number);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long addStation(Station station);
+    long addStation(StationDb station);
 
     @Update
-    void updateStation(Station station);
+    void updateStation(StationDb station);
 
     @Delete
-    void deleteStation(Station station);
+    void deleteStation(StationDb station);
 }

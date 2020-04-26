@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.tasks;
 
+import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 
 import java.lang.ref.WeakReference;
@@ -19,8 +20,14 @@ public class HistoryAsyncTask extends AsyncTask<Void, Void, List<Journey>> {
 
     @Override
     protected List<Journey> doInBackground(Void... param) {
-       List<Journey> list =  ValenbikeDatabase.getInstance(this.activity.get().getContext()).journeyDao().getJourneys();
-       return list;
+        try {
+            List<Journey> list =  ValenbikeDatabase.getInstance(this.activity.get().getContext()).journeyDao().getJourneys();
+            return list;
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override

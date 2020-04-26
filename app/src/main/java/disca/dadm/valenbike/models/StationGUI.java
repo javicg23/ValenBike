@@ -1,13 +1,14 @@
 package disca.dadm.valenbike.models;
 
 public class StationGUI extends Station {
-    private boolean expanded;
-    private boolean arrowDown;
+    private boolean expanded, arrowDown, isFavourite, notifyBikes;
 
     public StationGUI(int number, String contractName, String name, String address, Position position, boolean banking, boolean bonus, int bikeStands, int availableBikeStands, int availableBikes, String status, long lastUpdate) {
         super(number, contractName, name, address, position, banking, bonus, bikeStands, availableBikeStands, availableBikes, status, lastUpdate);
         this.expanded = false;
         this.arrowDown = false;
+        this.isFavourite = false;
+        this.notifyBikes = false;
     }
 
     public StationGUI() {}
@@ -28,4 +29,10 @@ public class StationGUI extends Station {
     public void setArrowDown(boolean arrowDown) {
         this.arrowDown = arrowDown;
     }
+
+    public boolean isFavourite() { return this.isFavourite; }
+    public void setFavourite(boolean fav) { this.isFavourite = fav; }
+
+    public boolean getNotifyBikes() { return this.notifyBikes; }
+    public void setNotifyBikes(boolean notifyBikes) { this.notifyBikes = notifyBikes; }
 }

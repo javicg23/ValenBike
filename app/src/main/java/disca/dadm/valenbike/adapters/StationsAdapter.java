@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.media.Image;
 import android.text.format.DateFormat;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
@@ -27,17 +26,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.activities.MainActivity;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
+import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.models.StationGUI;
 
-import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 
@@ -48,17 +49,18 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     private DataPassListener dataPassListener;
     private Context context;
     private StationGUI stationGUI;
+    private StationsFragment fragmentStations;
     private NotificationManagerCompat notificationManagerCompat;
 
     // loading progress
     private AlertDialog progressDialog;
 
 
-    public StationsAdapter(List<StationGUI> stationsList, DataPassListener dataPassListener, Context context) {
+    public StationsAdapter(StationsFragment fragment, List<StationGUI> stationsList, DataPassListener dataPassListener, Context context) {
+        this.fragmentStations = fragment;
         this.stationsList = stationsList;
         this.dataPassListener = dataPassListener;
         this.context = context;
-
     }
 
     @NonNull
@@ -82,39 +84,40 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
         holder.numFreeBikes.setText(String.valueOf(stationGUI.getAvailableBikes()));
         holder.numFreeGaps.setText(String.valueOf(stationGUI.getAvailableBikeStands()));
-
-        // TODO: Implementar calculo de distancia desde la posicion actual hasta la estacion.
-        //holder.distance.setText(stationGUI.getTime());
-        
         holder.address.setText(stationGUI.getAddress());
 
         long now = new Date().getTime();
         String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
+
         holder.lastUpdate.setText(dateString);
-
         holder.banking.setSelected(stationGUI.getBanking());
-
-        holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
+        holder.showRoute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showProgressDialog();
                 coordinatesToAddress(context, StationsAdapter.this, ParametersGeocoderTask.LOCATION_STATION, new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()));
             }
         });
-
-        holder.ibShowMap.setOnClickListener(new View.OnClickListener() {
+        holder.showInMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dataPassListener.passStationToMap(stationGUI.getNumber());
             }
         });
 
+        if (stationGUI.getNotifyBikes()) {
+            holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+            holder.reminder.setChecked(true);
+        } else {
+            holder.reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+            holder.reminder.setChecked(false);
+        }
         holder.reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     holder.reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
-                    Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    Notification notification = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
                             .setSmallIcon(R.drawable.ic_notification)
                             .setContentTitle("¡Ya hay bicis disponibles!")
                             .setContentText("En " + stationsList.get(position).getAddress() + " ya hay bicis disponibles")
@@ -128,6 +131,30 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 }
             }
         });
+
+        // Favourite check
+        if (stationGUI.isFavourite()) {
+            holder.favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+            holder.favourite.setChecked(true);
+        } else {
+            holder.favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+            holder.favourite.setChecked(false);
+        }
+        holder.favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    holder.favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+                    stationsList.get(position).setFavourite(true);
+                } else {
+                    holder.favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+                    stationsList.get(position).setFavourite(false);
+                }
+
+                fragmentStations.addUpdatedStation(stationsList.get(position));
+            }
+        });
+
     }
 
     @Override
@@ -140,20 +167,17 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
     }
 
     @Override
-    public void receivedAddressGPS(String address) {
-
-    }
+    public void receivedAddressGPS(String address) { }
 
     @Override
-    public void receivedAddressMarker(String address) {
-
-    }
+    public void receivedAddressMarker(String address) { }
 
     @Override
     public void receivedAddressStation(String address) {
         dataPassListener.passLocationToDirection(null, "", new LatLng(stationGUI.getPosition().getLat(), stationGUI.getPosition().getLng()), address);
         hideProgressDialog();
     }
+
 
     private void showProgressDialog() {
         progressDialog.show();
@@ -170,7 +194,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         private TextView numberStation, numFreeBikes, numFreeGaps, distance, address, lastUpdate;
         private ImageView ivArrow, banking;
         private CheckBox reminder, favourite;
-        private ImageButton ibShowMap, ibShowDistance;
+        private ImageButton showRoute, showInMap;
 
         public StationsViewHolder(@NonNull final View itemView) {
             super(itemView);
@@ -185,8 +209,8 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             reminder = itemView.findViewById(R.id.sheetReminder);
             favourite = itemView.findViewById(R.id.sheetFavourite);
             ivArrow = itemView.findViewById(R.id.ivArrow);
-            ibShowDistance = itemView.findViewById(R.id.ibShowDistance);
-            ibShowMap = itemView.findViewById(R.id.ibShowMap);
+            showRoute = itemView.findViewById(R.id.ibShowDistance);
+            showInMap = itemView.findViewById(R.id.ibShowMap);
 
             numberStation.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -199,17 +223,6 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 @Override
                 public void onClick(View v) {
                     changeExpandibleLayout();
-                }
-            });
-
-            favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
-                    } else {
-                        favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
-                    }
                 }
             });
 

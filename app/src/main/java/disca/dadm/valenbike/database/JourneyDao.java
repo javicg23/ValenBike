@@ -23,4 +23,7 @@ public interface JourneyDao {
 
     @Delete
     void deleteJourney(Journey journey);
+
+    @Insert
+    void insertAll(Journey...entities);
 }

@@ -89,4 +89,6 @@
     <string name="alert_close">Cerrar aplicación</string>
     <string name="channel_name">Canal1</string>
     <string name="channel_description">Canal para notificaciones de bicis</string>
+    <string name="favourite_stations">Estaciones favoritas</string>
+    <string name="notified_stations">Estaciones con notificaciones</string>
 </resources>

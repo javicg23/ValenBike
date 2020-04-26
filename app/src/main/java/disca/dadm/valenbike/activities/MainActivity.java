@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,16 +22,19 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.database.ValenbikeDatabase;
 import disca.dadm.valenbike.fragments.DirectionsFragment;
 import disca.dadm.valenbike.fragments.HistoryFragment;
 import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.tasks.StationsDbAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, DataPassListener {
 
+    public ValenbikeDatabase database;
     private static final String TAG_MAP = "map";
     private static final String TAG_STATIONS = "stations";
     private static final String TAG_HISTORY = "history";
@@ -51,6 +55,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         // Sets the listener to be notified when any element of the BottomNavigationView is clicked
         navigationView = findViewById(R.id.bottomView);
         navigationView.setOnNavigationItemSelectedListener(this);
+
+        database = ValenbikeDatabase.getInstance(getApplicationContext());
+        if (database != null) {
+            Log.d("DEBUG", "SE HA CREADO LA BASE DE DATOS");
+        }
+
 
         // Display the Stations title on the ActionBar
         Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.app_name);

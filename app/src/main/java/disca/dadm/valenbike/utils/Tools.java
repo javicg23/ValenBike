@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -25,6 +26,7 @@ import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
+import disca.dadm.valenbike.database.StationDb;
 import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
@@ -204,33 +206,33 @@ public class Tools {
     }
 
 
-    /* todo remove all this method*/
-    public static List<StationGUI> getStationsGui() {
+    public static List<StationGUI> mergeToStationGui(List<Station> stationList, List<StationDb> dbList) {
+        List<StationGUI> stationsGui = new ArrayList<>();
 
-        List<StationGUI> stations = new ArrayList<>();
-        stations.add(new StationGUI(102, "valence", "", "Ramon Llul - Serpis",
-                new Position(39.47580112282824, -0.346811013895548), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
+        for (int i = 0; i < stationList.size(); i++) {
+            StationGUI newStation = new StationGUI(
+                    stationList.get(i).getNumber(),
+                    stationList.get(i).getContractName(),
+                    stationList.get(i).getName(),
+                    stationList.get(i).getAddress(),
+                    stationList.get(i).getPosition(),
+                    stationList.get(i).getBanking(),
+                    stationList.get(i).getBonus(),
+                    stationList.get(i).getBikeStands(),
+                    stationList.get(i).getAvailableBikeStands(),
+                    stationList.get(i).getAvailableBikes(),
+                    stationList.get(i).getStatus(),
+                    stationList.get(i).getLastUpdate()
+            );
 
-        stations.add(new StationGUI(96, "valence", "", "Blasco Ibañez - Yecla",
-                new Position(39.47352211466433, -0.348305017144382), true,
-                false, 20, 0, 20, "OPEN", 1585552200));
-
-        stations.add(new StationGUI(114, "valence", "", "UPV informatica",
-                new Position(39.481772142992675, -0.346682016720988), false,
-                false, 20, 0, 20, "OPEN", 1585552200));
-
-        stations.add(new StationGUI(113, "valence", "", "UPV caminos",
-                new Position(39.48124414217441, -0.343702007510602), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
-
-        stations.add(new StationGUI(258, "valence", "", "Pintor rafael solves",
-                new Position(39.43979598762512, -0.38922812163005), false,
-                false, 20, 0, 20, "OPEN", 1585552200));
-
-        stations.add(new StationGUI(257, "valence", "", "Plaza salvador soria",
-                new Position(39.44521900594571, -0.389195124464717), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
-        return stations;
+            for (int j = 0; j < dbList.size(); j++) {
+                if (dbList.get(j).getNumber() == stationList.get(i).getNumber()) {
+                    newStation.setFavourite(dbList.get(j).isFavourite());
+                    newStation.setNotifyBikes(dbList.get(j).getNotifyBikes());
+                }
+            }
+            stationsGui.add(newStation);
+        }
+        return stationsGui;
     }
 }
