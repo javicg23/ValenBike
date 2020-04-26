@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
     private HistoryAdapter adapter = null;
     private Button delete;
     private TextView totalTime, totalMoney;
+    private List<Integer> listIdDelete = new ArrayList<>();
 
     public HistoryFragment() {
         // Required empty public constructor
@@ -103,6 +105,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             int positionDeleted = viewHolder.getAdapterPosition();
             adapter.deleteItem(viewHolder.getAdapterPosition());
             showSnackBar(deleted, positionDeleted);
+            listIdDelete.add(deleted.getId());
 
             if (this.historyList.isEmpty()) delete.setVisibility(View.INVISIBLE);
         }
@@ -134,6 +137,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
                 public void onClick(View v) {
                     adapter.restoreItem(deleted, position);
                     delete.setVisibility(View.VISIBLE);
+                    listIdDelete.remove(Integer.valueOf(deleted.getId()));
                     initData();
                 }
             });
@@ -141,6 +145,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
            @Override
            public void onDismissed(Snackbar snackbarInside, int event) {
                if (event == Snackbar.Callback.DISMISS_EVENT_SWIPE || event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) {
+                   listIdDelete.remove(Integer.valueOf(deleted.getId()));
                    JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
                    journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(deleted.getId()));
                }
@@ -158,6 +163,15 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             this.historyList.addAll(list);
             this.adapter.notifyDataSetChanged();
             initData();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        for (int i = 0; i < listIdDelete.size(); i++) {
+            JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
+            journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(listIdDelete.get(i)));
         }
     }
 }

@@ -447,7 +447,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
             int distance = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("distance").getInt("value");
             double distanceKm = (double) distance / 1000;
             DecimalFormat dfDistance = new DecimalFormat("0.0");
-            distanceKm = Double.parseDouble(dfDistance.format(distanceKm));
+            distanceKm = Double.parseDouble(dfDistance.format(distanceKm).replace("," ,"."));
             int duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
             double durationToMinuts = duration / 60.0;
             int durationDatabase = (int) durationToMinuts;
