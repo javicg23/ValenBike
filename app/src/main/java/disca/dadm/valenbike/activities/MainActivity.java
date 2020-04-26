@@ -3,6 +3,7 @@ package disca.dadm.valenbike.activities;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,10 +19,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.database.Journey;
 import disca.dadm.valenbike.database.ValenbikeDatabase;
 import disca.dadm.valenbike.fragments.DirectionsFragment;
 import disca.dadm.valenbike.fragments.HistoryFragment;
@@ -29,6 +33,7 @@ import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.tasks.PrepopulateDbAsyncTask;
 import disca.dadm.valenbike.tasks.StationsDbAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
 
@@ -59,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         database = ValenbikeDatabase.getInstance(getApplicationContext());
         if (database != null) {
             Log.d("DEBUG", "SE HA CREADO LA BASE DE DATOS");
+            PrepopulateDbAsyncTask task = new PrepopulateDbAsyncTask(this);
+            task.execute();
         }
 
 
