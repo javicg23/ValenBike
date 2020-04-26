@@ -11,15 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Entity(tableName = "journey",
-        foreignKeys = {@ForeignKey(entity = StationDb.class,
-                                   parentColumns = "number",
-                                   childColumns = "origin_station"),
-                       @ForeignKey(entity = StationDb.class,
-                                   parentColumns = "number",
-                                   childColumns = "destination_station")
-        })
-
+@Entity(tableName = "journey")
 public class Journey {
 
     //Autoincremental primary key
@@ -35,11 +27,11 @@ public class Journey {
 
     private double distance;
 
-    @ColumnInfo(name = "origin_station") private int origin;
+    @ColumnInfo(name = "origin_station") private String origin;
 
-    @ColumnInfo(name = "destination_station") private int destination;
+    @ColumnInfo(name = "destination_station") private String destination;
 
-    public Journey(int time, double cost, Date date, double dist, int ori, int dest) {
+    public Journey(int time, double cost, Date date, double dist, String ori, String dest) {
         this.totalTime = time;
         this.totalCost = cost;
         this.date = date;
@@ -65,28 +57,10 @@ public class Journey {
     public double getDistance() { return this.distance; }
     public void setDistance(double dist) { this.distance = dist; }
 
-    public int getOrigin() { return this.origin; }
-    public void setOrigin(int ori) { this.origin = ori; }
+    public String getOrigin() { return this.origin; }
+    public void setOrigin(String ori) { this.origin = ori; }
 
-    public int getDestination() { return this.destination; }
-    public void setDestination(int dest) { this.destination = dest; }
+    public String getDestination() { return this.destination; }
+    public void setDestination(String dest) { this.destination = dest; }
 
-    public static Journey[] populateData() {
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-
-            Journey[] prepopulate = new Journey[]{
-                new Journey(12, 3.22, dateFormat.parse("12/04/2020"), 2300.0, 22, 89),
-                new Journey(5, 2.22, dateFormat.parse("22/02/2020"), 800.0, 96, 258),
-                new Journey(30, 8.15, dateFormat.parse("03/03/2020"), 6500.0, 257, 113),
-                new Journey(22, 6.76, dateFormat.parse("22/04/2020"), 4500.0, 102, 114)
-            };
-
-            return prepopulate;
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
 }

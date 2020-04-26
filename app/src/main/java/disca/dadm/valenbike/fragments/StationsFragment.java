@@ -124,24 +124,22 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         switch (item.getItemId()) {
             case R.id.menu_filter:
                 // Show check menu to select filter options
-                AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+                AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
                 builder.setTitle(R.string.selection_filter_menu_station);
-                final String[] options = new String[]{
-                        "Estaciones favoritas",
-                        "Estaciones con notificaciones",
-                };
+
                 final boolean[] checkedOptions = new boolean[]{
                         false, // Favourite stations
                         false,  // Notified stations
                 };
 
-                builder.setMultiChoiceItems(options, checkedOptions, new DialogInterface.OnMultiChoiceClickListener() {
+                builder.setMultiChoiceItems(R.array.filter_menu_options, checkedOptions, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         checkedOptions[which] = isChecked;
                     }
                 });
 
+                builder.setCancelable(true);
                 builder.setPositiveButton(R.string.filter_menu_station, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

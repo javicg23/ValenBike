@@ -15,7 +15,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-@Database(entities = {Journey.class, StationDb.class}, version = 1, exportSchema = false)
+@Database(entities = {Journey.class, StationDb.class}, version = 2, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class ValenbikeDatabase extends RoomDatabase {
 
@@ -26,6 +26,7 @@ public abstract class ValenbikeDatabase extends RoomDatabase {
         if (valenbikeDatabase == null) {
             valenbikeDatabase = Room
                     .databaseBuilder(context, ValenbikeDatabase.class, "valenbikes")
+                    .fallbackToDestructiveMigration()
                     .addCallback(roomCallback)
                     .build();
         }
@@ -55,10 +56,10 @@ public abstract class ValenbikeDatabase extends RoomDatabase {
         @Override
         protected Void doInBackground(Void...param) {
             try {
-                journeyDao.addJourney(new Journey(12, 3.22, dateFormat.parse("12/04/2020"), 2300.0, 22, 89));
-                journeyDao.addJourney(new Journey(5, 2.22, dateFormat.parse("22/02/2020"), 800.0, 96, 258));
-                journeyDao.addJourney(new Journey(30, 8.15, dateFormat.parse("03/03/2020"), 6500.0, 257, 113));
-                journeyDao.addJourney(new Journey(22, 6.76, dateFormat.parse("22/04/2020"), 4500.0, 102, 114));
+                journeyDao.addJourney(new Journey(12, 3.22, dateFormat.parse("12/04/2020"), 2300.0, "Ramon Llul - Serpis", "Pintor rafael solves"));
+                journeyDao.addJourney(new Journey(5, 2.22, dateFormat.parse("22/02/2020"), 800.0, "UPV caminos", "Blasco Ibañez - Yecla"));
+                journeyDao.addJourney(new Journey(30, 8.15, dateFormat.parse("03/03/2020"), 6500.0, "Plaza salvador soria", "Ramon Llul - Serpis"));
+                journeyDao.addJourney(new Journey(22, 6.76, dateFormat.parse("22/04/2020"), 4500.0, "Puerto Rico - Cuba", "Ángel Villena - Ausias March"));
             } catch (ParseException e) {
                 e.printStackTrace();
             }

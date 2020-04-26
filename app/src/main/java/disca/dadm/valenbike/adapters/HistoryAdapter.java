@@ -35,9 +35,12 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         holder.origin.setText(history.getOrigin());
         holder.destination.setText((history.getDestination()));
         holder.date.setText(new SimpleDateFormat("dd/MM/YYYY").format(history.getDate()));
-        holder.time.setText(history.getTotalTime() + "'");
-        holder.distance.setText(history.getDistance() + " km");
-        holder.money.setText(history.getTotalCost()+ " €");
+        String totaltime = history.getTotalTime() + "'";
+        holder.time.setText(totaltime);
+        String totalDistance = history.getDistance() + " km";
+        holder.distance.setText(totalDistance);
+        String money = history.getTotalCost()+ " €";
+        holder.money.setText(money);
     }
 
     @Override
