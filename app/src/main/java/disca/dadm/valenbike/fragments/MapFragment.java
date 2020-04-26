@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -79,15 +80,19 @@ import java.util.Objects;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.RouteAdapter;
+import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Route;
 import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
+import disca.dadm.valenbike.tasks.StationsAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
 import disca.dadm.valenbike.utils.Tools;
 
@@ -98,7 +103,7 @@ import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted {
+public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted, OnStationTaskCompleted {
 
     private final float CAMERA_ZOOM_STREET = 17;
     private final float CAMERA_ZOOM_CITY = 12;
@@ -161,6 +166,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     private int idStationResponse;
     private NotificationManagerCompat notificationManagerCompat;
+    private BottomSheetDialog dialog;
+    private View dialogView;
+    private Station station;
+    private CheckBox reminder;
+    private CheckBox favourite;
 
     public MapFragment() {
         // Required empty public constructor
@@ -901,7 +911,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
             @Override
             public void onError(@NonNull Status status) {
-                Snackbar.make(rootView, getString(R.string.places_search_error), Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(rootView, getString(R.string.places_error_search), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -946,25 +956,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
 
     @Override
     public void receivedStation(Station station) {
-        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
-        BottomSheetDialog dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
-        initDialogStation(dialog, dialogView, station);
-        dialog.setContentView(dialogView);
-        LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
-        moveCamera(position, CAMERA_ZOOM_STREET);
-        dialog.show();
-        requestDone();
+        dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
+        dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
+        this.station = station;
+        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(getContext(), this);
+        stationsAsyncTask.execute(StationsAsyncTask.GET_STATION, station.getNumber());
     }
 
-    private void initDialogStation(final BottomSheetDialog dialog, final View dialogView, final Station station) {
+    private void initDialogStation(final BottomSheetDialog dialog, final View dialogView, final Station station, final StationGUI stationDatabase) {
         TextView numberStation = dialogView.findViewById(R.id.sheetNumberStation);
         final TextView address = dialogView.findViewById(R.id.sheetAddress);
         TextView bikes = dialogView.findViewById(R.id.sheetAvailableBikes);
         final TextView stands = dialogView.findViewById(R.id.sheetAvailableStands);
         TextView lastUpdate = dialogView.findViewById(R.id.sheetLastUpdate);
         ImageView payment = dialogView.findViewById(R.id.sheetPayment);
-        final CheckBox reminder = dialogView.findViewById(R.id.sheetReminder);
-        final CheckBox favourite = dialogView.findViewById(R.id.sheetFavourite);
+        reminder = dialogView.findViewById(R.id.sheetReminder);
+        favourite = dialogView.findViewById(R.id.sheetFavourite);
         Button directions = dialogView.findViewById(R.id.sheetDirections);
         LinearLayout layoutInfo = dialogView.findViewById(R.id.sheetLayoutInfo);
         LinearLayout layoutClosed = dialogView.findViewById(R.id.sheetLayoutClosed);
@@ -974,6 +981,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         address.setText(station.getAddress());
 
         if (station.isActive()) {
+
             bikes.setText(String.valueOf(station.getAvailableBikes()));
             stands.setText(String.valueOf(station.getAvailableBikeStands()));
 
@@ -987,11 +995,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             });
 
+            if (stationDatabase.isReminderCheck()) {
+                reminder.setChecked(true);
+                reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
+            }
+
             reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
                         reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
+
                         Notification notification = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
                                 .setSmallIcon(R.drawable.ic_notification)
                                 .setContentTitle("¡Ya hay bicis disponibles!")
@@ -1021,15 +1035,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             payment.setVisibility(View.INVISIBLE);
         }
 
+        if (stationDatabase.isFavouriteCheck()) {
+            favourite.setChecked(true);
+            favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp, null));
+        }
+
         favourite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_magenta_24dp, null));
-                    Toast.makeText(getActivity(), "favourite true", Toast.LENGTH_SHORT).show();
                 } else {
                     favourite.setBackground(getResources().getDrawable(R.drawable.ic_favorite_border_magenta_24dp, null));
-                    Toast.makeText(getActivity(), "favourite false", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1043,6 +1060,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private void hideProgressDialog() {
         progressDialog.dismiss();
         fabDirections.setEnabled(true);
+    }
+
+    @Override
+    public void responseStationDatabase(final List<StationGUI> list) {
+        if (list != null) {
+            initDialogStation(dialog, dialogView, station, list.get(0));
+            dialog.setContentView(dialogView);
+            LatLng position = new LatLng(station.getPosition().getLat() + POSITION_MARKER_SHEET, station.getPosition().getLng());
+            moveCamera(position, CAMERA_ZOOM_STREET);
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(getContext(), MapFragment.this);
+                    stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, list.get(0).getNumber(),
+                            favourite.isChecked() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND,
+                            reminder.isChecked() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
+                }
+            });
+            dialog.show();
+            requestDone();
+        }
     }
 
     private class MyGoogleLocationCallback extends LocationCallback {

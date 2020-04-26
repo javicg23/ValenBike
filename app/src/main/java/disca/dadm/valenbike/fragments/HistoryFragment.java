@@ -17,21 +17,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.HistoryAdapter;
-import disca.dadm.valenbike.database.Journey;
+import disca.dadm.valenbike.interfaces.OnJourneyTaskCompleted;
+import disca.dadm.valenbike.models.Journey;
 import disca.dadm.valenbike.lib.RecyclerItemTouchHelper;
+import disca.dadm.valenbike.tasks.JourneyAsyncTask;
 
-import disca.dadm.valenbike.tasks.HistoryAsyncTask;
 
-
-public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener{
+public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener, OnJourneyTaskCompleted {
 
     private RecyclerView recycler;
-    private List<Journey> historyList = new ArrayList<Journey>();
+    private List<Journey> historyList = new ArrayList<>();
     private HistoryAdapter adapter = null;
     private Button delete;
     private TextView totalTime, totalMoney;
@@ -65,10 +64,10 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             }
         });
 
-        initRecyclerView();
+        JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), this);
+        journeyAsyncTask.execute(JourneyAsyncTask.GET_ALL_JOURNEYS);
 
-        HistoryAsyncTask task = new HistoryAsyncTask(this);
-        task.execute();
+        initRecyclerView();
 
         return view;
     }
@@ -80,26 +79,21 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         recycler.setAdapter(adapter);
     }
 
-    public void getList (List<Journey> list) {
-        this.historyList.addAll(list);
-        this.adapter.notifyDataSetChanged();
-        initData();
-    }
-
     private void initData(){
-        int time=0, money=0;
+        int time = 0;
+        double money = 0;
 
         if (!historyList.isEmpty()) {
             delete.setVisibility(View.VISIBLE);
-            for(int i =0; i<historyList.size(); i++) {
-                time+= historyList.get(i).getTotalTime();
-                money+= historyList.get(i).getTotalCost();
+            for(int i = 0; i < historyList.size(); i++) {
+                time += historyList.get(i).getDuration();
+                money += historyList.get(i).getPrice();
             }
         }
 
         else delete.setVisibility(View.INVISIBLE);
 
-        totalTime.setText(time + " ");
+        totalTime.setText(time + " '");
         totalMoney.setText(money + " €");
     }
     @Override
@@ -110,7 +104,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             adapter.deleteItem(viewHolder.getAdapterPosition());
             showSnackBar(deleted, positionDeleted);
 
-            //if (this.historyList.isEmpty()) delete.setVisibility(View.INVISIBLE);
+            if (this.historyList.isEmpty()) delete.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -122,8 +116,11 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 adapter.clear();
-                //delete.setVisibility(View.INVISIBLE);
-                initData();
+                delete.setVisibility(View.INVISIBLE);
+                JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
+                journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_ALL_JOURNEY);
+                totalTime.setText("0 '");
+                totalMoney.setText("0.0 €");
             }
         });
         builder.setNegativeButton("NO",null);
@@ -140,11 +137,28 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
                     initData();
                 }
             });
-            snackbar.setActionTextColor(Color.BLUE);
-            snackbar.show();
+        snackbar.addCallback(new Snackbar.Callback() {
+           @Override
+           public void onDismissed(Snackbar snackbarInside, int event) {
+               if (event == Snackbar.Callback.DISMISS_EVENT_SWIPE || event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) {
+                   JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
+                   journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(deleted.getId()));
+               }
+           }
+        });
+        snackbar.setActionTextColor(Color.BLUE);
+        snackbar.show();
 
-            initData();
+        initData();
     }
 
+    @Override
+    public void responseJourneyDatabase(List<Journey> list) {
+        if (list != null) {
+            this.historyList.addAll(list);
+            this.adapter.notifyDataSetChanged();
+            initData();
+        }
+    }
 }
 

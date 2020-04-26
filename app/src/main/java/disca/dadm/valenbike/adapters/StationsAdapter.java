@@ -32,11 +32,14 @@ import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
+import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.StationGUI;
+import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
@@ -74,7 +77,9 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         stationGUI = stationsList.get(position);
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
         holder.address.setText(stationGUI.getAddress());
-        if (stationGUI.getStatus().equals("OPEN")) {
+
+        boolean open = changeXML(stationGUI.getStatus().equals("OPEN"), holder);
+        if (open) {
             boolean isExpanded = stationsList.get(position).isExpanded();
             TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
             holder.expandableLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
@@ -91,7 +96,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             String dateString = DateFormat.format("HH:mm", new Date(now - stationGUI.getLastUpdate())).toString();
             holder.lastUpdate.setText(dateString);
 
-            holder.banking.setSelected(stationGUI.getBanking());
+            holder.banking.setVisibility(stationGUI.getBanking() ? View.VISIBLE : View.GONE);
 
             holder.ibShowDistance.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -113,6 +118,35 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
             boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
             holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        if(stationsList != null) {
+            return stationsList.size();
+        }
+
+        return 0;
+    }
+
+    private boolean changeXML(boolean open, final StationsAdapter.StationsViewHolder holder) {
+        if (open) {
+            holder.constraintLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    holder.changeExpandibleLayout();
+                }
+            });
+            holder.expandableLayout.setVisibility(View.VISIBLE);
+            holder.ivArrow.setVisibility(View.VISIBLE);
+            holder.reminder.setVisibility(View.VISIBLE);
+            holder.numFreeBikes.setVisibility(View.VISIBLE);
+            holder.numFreeGaps.setVisibility(View.VISIBLE);
+            holder.ivBike.setVisibility(View.VISIBLE);
+            holder.ivParking.setVisibility(View.VISIBLE);
+            holder.favourite.setVisibility(View.VISIBLE);
+            holder.closedStation.setVisibility(View.GONE);
         } else {
             holder.constraintLayout.setOnClickListener(null);
             holder.expandableLayout.setVisibility(View.GONE);
@@ -125,15 +159,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             holder.favourite.setVisibility(View.GONE);
             holder.closedStation.setVisibility(View.VISIBLE);
         }
-    }
-
-    @Override
-    public int getItemCount() {
-        if(stationsList != null) {
-            return stationsList.size();
-        }
-
-        return 0;
+        return open;
     }
 
     @Override
@@ -160,7 +186,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         progressDialog.dismiss();
     }
 
-    class StationsViewHolder extends RecyclerView.ViewHolder {
+    class StationsViewHolder extends RecyclerView.ViewHolder implements OnStationTaskCompleted {
         private static final String TAG = "StationsViewHolder";
 
         private ConstraintLayout expandableLayout, constraintLayout;
@@ -177,7 +203,6 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             numberStation = itemView.findViewById(R.id.sheetNumberStation);
             numFreeBikes = itemView.findViewById(R.id.tvNumFreeBikes);
             numFreeGaps = itemView.findViewById(R.id.tvNumFreeGaps);
-            distance = itemView.findViewById(R.id.tvDistance);
             address = itemView.findViewById(R.id.tvAddress);
             lastUpdate = itemView.findViewById(R.id.tvLastUpdate);
             banking = itemView.findViewById(R.id.ivBanking);
@@ -208,11 +233,17 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     StationGUI station = stationsList.get(getAdapterPosition());
-                    if (!station.isReminderCheck()) {
+                    if (!station.isFavouriteCheck()) {
                         station.setFavouriteCheck(!station.isFavouriteCheck());
+                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                        stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, station.getNumber(), ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND,
+                                station.isReminderCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
                         favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
                     } else {
                         station.setFavouriteCheck(!station.isFavouriteCheck());
+                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                        stationsAsyncTask.execute(StationsAsyncTask.UPDATE_STATION, station.getNumber(), ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND,
+                                station.isReminderCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
                         favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
                     }
                     notifyItemChanged(getAdapterPosition());
@@ -225,7 +256,11 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                     StationGUI station = stationsList.get(getAdapterPosition());
                     if (!station.isReminderCheck()){
                         station.setReminderCheck(!station.isReminderCheck());
+                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                        stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, station.getNumber(),
+                                station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND);
                         reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+
                         Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                                 .setSmallIcon(R.drawable.ic_notification)
                                 .setContentTitle("¡Ya hay bicis disponibles!")
@@ -237,6 +272,9 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                         notificationManagerCompat.notify(1, notification);
                     } else {
                         station.setReminderCheck(!station.isReminderCheck());
+                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                        stationsAsyncTask.execute(StationsAsyncTask.UPDATE_STATION, station.getNumber(),
+                                station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
                         reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
                     }
                     notifyItemChanged(getAdapterPosition());
@@ -252,5 +290,9 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             notifyItemChanged(getAdapterPosition());
         }
 
+        @Override
+        public void responseStationDatabase(List<StationGUI> list) {
+
+        }
     }
 }

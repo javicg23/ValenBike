@@ -268,36 +268,6 @@
                         app:srcCompat="@drawable/ic_directions_primary_24dp" />
 
                 </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/linearLayout3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="8dp"
-                    android:orientation="horizontal"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:paddingTop="4dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="Distancia:" />
-                    <TextView
-                        android:id="@+id/tvDistance"
-                        android:layout_width="25dp"
-                        android:layout_height="30dp"
-                        android:paddingTop="4dp"
-                        android:text="800" />
-
-                    <TextView
-                        android:id="@+id/textView7"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:paddingTop="4dp"
-                        android:text="m" />
-                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
 

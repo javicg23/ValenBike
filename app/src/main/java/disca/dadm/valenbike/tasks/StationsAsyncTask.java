@@ -1,37 +1,72 @@
-//package disca.dadm.valenbike.tasks;
-//
-//import android.os.AsyncTask;
-//
-//import java.lang.ref.WeakReference;
-//import java.util.List;
-//
-//import disca.dadm.valenbike.activities.MainActivity;
-//import disca.dadm.valenbike.database.Stations;
-//import disca.dadm.valenbike.database.ValenbikeDatabase;
-//import disca.dadm.valenbike.fragments.StationsFragment;
-//import disca.dadm.valenbike.models.StationGUI;
-//
-//public class StationsAsyncTask extends AsyncTask<Void, Void, List<StationGUI>> {
-//
-//    private final WeakReference<StationsFragment> fragment;
-//
-//    public StationsAsyncTask(StationsFragment fragment) {
-//        super();
-//        this.fragment = new WeakReference<>(fragment);
-//    }
-//
-//    @Override
-//    protected List<StationGUI> doInBackground (Void... params) {
-//        if(fragment.get() == null) { return null; }
-//
-//        List<StationGUI> dbStations = ValenbikeDatabase.getInstance(fragment.get().getContext()).stationDao().getStations();
-//        return dbStations;
-//    }
-//
-//    @Override
-//    protected void onPostExecute(List<StationGUI> params) {
-//        if (fragment.get() != null) {
-//            //fragment.get().initData(params);
-//        }
-//    }
-//}
+package disca.dadm.valenbike.tasks;
+
+import android.content.Context;
+import android.os.AsyncTask;
+import android.view.View;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import disca.dadm.valenbike.database.ValenbikeDatabase;
+import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
+import disca.dadm.valenbike.fragments.HistoryFragment;
+import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
+import disca.dadm.valenbike.models.Journey;
+import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
+
+public class StationsAsyncTask extends AsyncTask<Integer, Void, List<StationGUI>> {
+
+    public static final int GET_ALL_STATIONS = 0;
+    public static final int GET_STATION = 1;
+    public static final int EXIST_STATION = 2;
+    public static final int INSERT_STATION = 3;
+    public static final int UPDATE_STATION = 4;
+    public static final int REMOVE_STATION = 5;
+
+    private OnStationTaskCompleted onStationTaskCompleted;
+    private Context context;
+
+    public StationsAsyncTask(Context context, OnStationTaskCompleted onStationTaskCompleted) {
+        this.context = context;
+        this.onStationTaskCompleted = onStationTaskCompleted;
+    }
+
+    @Override
+    protected List<StationGUI> doInBackground(Integer... param) {
+        List<StationGUI> listStations = null;
+        switch(param[0]) {
+            case GET_ALL_STATIONS:
+                listStations = ValenbikeSQLiteOpenHelper.getInstance(context).getAllStations();
+                break;
+            case GET_STATION:
+                StationGUI station = ValenbikeSQLiteOpenHelper.getInstance(context).getStation(param[1]);
+                listStations = new ArrayList<>();
+                listStations.add(station);
+                break;
+            case EXIST_STATION:
+                ValenbikeSQLiteOpenHelper.getInstance(context).existStation(param[1]);
+                break;
+            case INSERT_STATION:
+                ValenbikeSQLiteOpenHelper.getInstance(context).insertStation(param[1], param[2], param[3]);
+                break;
+            case UPDATE_STATION:
+                ValenbikeSQLiteOpenHelper.getInstance(context).updateStation(param[1], param[2], param[3]);
+                break;
+            case REMOVE_STATION:
+                ValenbikeSQLiteOpenHelper.getInstance(context).removeStation(param[1]);
+                break;
+        }
+        return listStations;
+    }
+
+    @Override
+    protected void onPostExecute(List<StationGUI> list) {
+        super.onPostExecute(list);
+        onStationTaskCompleted.responseStationDatabase(list);
+    }
+}

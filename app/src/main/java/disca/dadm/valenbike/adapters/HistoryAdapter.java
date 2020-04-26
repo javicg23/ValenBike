@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.database.Journey;
+import disca.dadm.valenbike.models.Journey;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
     private static final String TAG = "HistoryAdapter";
@@ -33,11 +33,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, final int position) {
         Journey history = historyList.get(position);
         holder.origin.setText(history.getOrigin());
-        holder.destination.setText((history.getDestination()));
-        holder.date.setText(new SimpleDateFormat("dd/MM/YYYY").format(history.getDate()));
-        holder.time.setText(history.getTotalTime() + "'");
+        holder.destination.setText((history.getDestiny()));
+        holder.date.setText(history.getDate());
+        holder.time.setText(history.getDuration() + " min");
         holder.distance.setText(history.getDistance() + " km");
-        holder.money.setText(history.getTotalCost()+ " €");
+        holder.money.setText(history.getPrice()+ " €");
     }
 
     @Override

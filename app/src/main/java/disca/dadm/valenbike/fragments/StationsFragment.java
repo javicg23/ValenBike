@@ -22,17 +22,20 @@ import java.util.List;
 import disca.dadm.valenbike.R;
 //import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.adapters.StationsAdapter;
+import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
 import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
+import disca.dadm.valenbike.tasks.StationsAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
 import disca.dadm.valenbike.utils.test;
 
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 //import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
-public class StationsFragment extends Fragment {
+public class StationsFragment extends Fragment implements OnStationTaskCompleted {
 
     private RecyclerView recyclerView;
     private List<StationGUI> stationsList;
@@ -70,9 +73,8 @@ public class StationsFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerViewStations);
 
-        //startNewAsyncTask();
-        //initData();
-        initRecyclerView();
+        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(getContext(), this);
+        stationsAsyncTask.execute(StationsAsyncTask.GET_ALL_STATIONS);
 
         return view;
     }
@@ -127,44 +129,6 @@ public class StationsFragment extends Fragment {
         return false;
     }
 
-//    private void startNewAsyncTask() {
-//        StationsAsyncTask task = new StationsAsyncTask(this);
-//        this.asyncTaskWeakRef = new WeakReference<>(task);
-//        task.execute();
-//    }
-
-    public void initData() {
-        // DEBUG without API data.
-//        List <Station> stationsApi = Tools.getStations();
-//
-//        for(int i = 0; i < stationsApi.size(); i++) {
-//            Station station = stationsApi.get(i);
-//            int number = station.getNumber();
-//            String contractName = station.getContractName();
-//            String name = station.getName();
-//            String address = station.getAddress();
-//            Position pos = station.getPosition();
-//            boolean banking = station.getBanking();
-//            boolean bonus = station.getBonus();
-//            int bikeStands = station.getBikeStands();
-//            int availableBikeStands = station.getAvailableBikeStands();
-//            int availableBikes = station.getAvailableBikes();
-//            String status = station.getStatus();
-//            long lastUpdate = station.getLastUpdate();
-//
-//            StationGUI stationGui = new StationGUI(number, contractName, name, address, pos, banking, bonus, bikeStands, availableBikeStands, availableBikes, status, lastUpdate);
-//            stationsList.add(stationGui);
-//        }
-
-        //initRecyclerView();
-    }
-
-    private void initRecyclerView() {
-        stationsList = Tools.getStationsGui();
-        StationsAdapter stationsAdapter = new StationsAdapter(stationsList, dataPassListener, getContext());
-        recyclerView.setAdapter(stationsAdapter);
-    }
-
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -181,4 +145,20 @@ public class StationsFragment extends Fragment {
         this.dataPassListener = callback;
     }
 
+    @Override
+    public void responseStationDatabase(List<StationGUI> list) {
+        stationsList = Tools.getStationsGui();
+
+        for (StationGUI stationGUIDatabase : list) {
+            for (StationGUI stationGUI : stationsList) {
+                if (stationGUI.getNumber() == stationGUIDatabase.getNumber()) {
+                    stationGUI.setFavouriteCheck(stationGUIDatabase.isFavouriteCheck());
+                    stationGUI.setReminderCheck(stationGUIDatabase.isReminderCheck());
+                    break;
+                }
+            }
+        }
+        StationsAdapter stationsAdapter = new StationsAdapter(stationsList, dataPassListener, getContext());
+        recyclerView.setAdapter(stationsAdapter);
+    }
 }

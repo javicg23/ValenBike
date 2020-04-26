@@ -86,7 +86,7 @@ public class Tools {
         List<Station> stations = new ArrayList<>();
         stations.add(new Station(102, "valence", "", "Ramon Llul - Serpis",
                 new Position(39.47580112282824, -0.346811013895548), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
+                false, 20, 10, 10, "OPEN", 1522222200));
 
         stations.add(new Station(96, "valence", "", "Blasco Ibañez - Yecla",
                 new Position(39.47352211466433, -0.348305017144382), true,
@@ -198,7 +198,7 @@ public class Tools {
 
         stations.add(new Station(17, "valence", "", "Xátiva - Bailén (Estación del Norte)",
                 new Position(39.467436084759534, -0.377350100922523), true,
-                false, 20, 10, 10, "CLOSED", 1585552200));
+                false, 20, 10, 10, "CLOSED", 1599999200));
 
         return stations;
     }
@@ -210,7 +210,7 @@ public class Tools {
         List<StationGUI> stations = new ArrayList<>();
         stations.add(new StationGUI(102, "valence", "", "Ramon Llul - Serpis",
                 new Position(39.47580112282824, -0.346811013895548), false,
-                false, 20, 10, 10, "OPEN", 1585552200));
+                false, 20, 10, 10, "OPEN", 1522222200));
 
         stations.add(new StationGUI(96, "valence", "", "Blasco Ibañez - Yecla",
                 new Position(39.47352211466433, -0.348305017144382), true,
@@ -318,11 +318,11 @@ public class Tools {
 
         stations.add(new StationGUI(210, "valence", "", "Campos Crespo - Juan de Garay",
                 new Position(39.45552103825903, -0.396807152864784), true,
-                false, 20, 10, 10, "OPEN", 1585552200));
+                false, 20, 10, 10, "OPEN", 1599999200));
 
         stations.add(new StationGUI(17, "valence", "", "Xátiva - Bailén (Estación del Norte)",
                 new Position(39.467436084759534, -0.377350100922523), true,
-                false, 20, 10, 10, "CLOSED", 1585552200));
+                false, 20, 10, 10, "CLOSED", 1599999200));
         return stations;
     }
 }
