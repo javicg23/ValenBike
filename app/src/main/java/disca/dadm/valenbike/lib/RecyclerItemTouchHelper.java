@@ -1,8 +1,11 @@
 package disca.dadm.valenbike.lib;
 
 import android.graphics.Canvas;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -28,7 +31,7 @@ public class RecyclerItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
-        if(viewHolder != null){
+        if (viewHolder != null) {
             View foregroundView = ((HistoryAdapter.HistoryViewHolder) viewHolder).layoutDelete;
             getDefaultUIUtil().onSelected(foregroundView);
         }
@@ -41,7 +44,7 @@ public class RecyclerItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 
         View foregroundView = ((HistoryAdapter.HistoryViewHolder) viewHolder).layoutDelete;
 
-        getDefaultUIUtil().onDrawOver(c, recyclerView, foregroundView, dX,dY, actionState,isCurrentlyActive);
+        getDefaultUIUtil().onDrawOver(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive);
 
     }
 
@@ -58,7 +61,7 @@ public class RecyclerItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 
         View foregroundView = ((HistoryAdapter.HistoryViewHolder) viewHolder).layoutDelete;
 
-        getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY,  actionState, isCurrentlyActive);
+        getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive);
     }
 
 

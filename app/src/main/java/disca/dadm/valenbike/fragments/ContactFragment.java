@@ -4,9 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.BlendMode;
 import android.graphics.BlendModeColorFilter;
-import android.graphics.PorterDuff;
-import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -57,7 +56,9 @@ public class ContactFragment extends Fragment {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
                         ImageView imageView = (ImageView) v;
-                        imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        }
                         imageView.invalidate();
                         break;
                     }
@@ -80,7 +81,9 @@ public class ContactFragment extends Fragment {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
                         ImageView imageView = (ImageView) v;
-                        imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        }
                         imageView.invalidate();
                         break;
                     }
@@ -103,7 +106,9 @@ public class ContactFragment extends Fragment {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
                         ImageView imageView = (ImageView) v;
-                        imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        }
                         imageView.invalidate();
                         break;
                     }
@@ -126,7 +131,9 @@ public class ContactFragment extends Fragment {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
                         ImageView imageView = (ImageView) v;
-                        imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            imageView.getDrawable().setColorFilter(new BlendModeColorFilter(0x77000000, BlendMode.SRC_ATOP));
+                        }
                         imageView.invalidate();
                         break;
                     }

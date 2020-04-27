@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_item_search_button"
+        android:title="@string/search_word"
+        android:icon="@drawable/ic_search_white_24dp"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="android.widget.SearchView"/>
+    <item
+        android:id="@+id/menu_item_filter_button"
+        android:title="@string/filter_word"
+        android:icon="@drawable/station_filter_selector"
+        app:showAsAction="always">
+        <menu>
+            <group android:checkableBehavior="single"
+                android:id="@+id/groupStationFilter">
+                <item
+                    android:id="@+id/station_filter_number"
+                    android:title="@string/filter_stations_number"
+                    android:checked="true" />
+                <item
+                    android:id="@+id/station_filter_alphabetically"
+                    android:title="@string/filter_stations_alphabetically" />
+                <item
+                    android:id="@+id/station_filter_favourite"
+                    android:title="@string/filter_stations_favourite" />
+            </group>
+        </menu>
+    </item>
+</menu>

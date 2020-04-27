@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
     private List<Journey> historyList = new ArrayList<>();
     private HistoryAdapter adapter = null;
     private Button delete;
-    private TextView totalTime, totalMoney;
+    private TextView totalTime, totalMoney, tvNotHistoryRoutes;
     private List<Integer> listIdDelete = new ArrayList<>();
 
     public HistoryFragment() {
@@ -58,6 +57,7 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         recycler = view.findViewById(R.id.recyclerHistory);
         totalTime = view.findViewById(R.id.totalTime);
         totalMoney = view.findViewById(R.id.totalMoney);
+        tvNotHistoryRoutes = view.findViewById(R.id.tvNotHistoryRoutes);
 
         delete = view.findViewById(R.id.deleteButton);
         delete.setOnClickListener(new View.OnClickListener() {
@@ -81,23 +81,26 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
         recycler.setAdapter(adapter);
     }
 
-    private void initData(){
+    private void initData() {
         int time = 0;
         double money = 0;
 
         if (!historyList.isEmpty()) {
             delete.setVisibility(View.VISIBLE);
-            for(int i = 0; i < historyList.size(); i++) {
+            tvNotHistoryRoutes.setVisibility(View.GONE);
+            for (int i = 0; i < historyList.size(); i++) {
                 time += historyList.get(i).getDuration();
                 money += historyList.get(i).getPrice();
             }
+        } else {
+            tvNotHistoryRoutes.setVisibility(View.VISIBLE);
+            delete.setVisibility(View.INVISIBLE);
         }
-
-        else delete.setVisibility(View.INVISIBLE);
 
         totalTime.setText(time + " '");
         totalMoney.setText(money + " €");
     }
+
     @Override
     public void onSwipe(RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof HistoryAdapter.HistoryViewHolder) {
@@ -126,32 +129,32 @@ public class HistoryFragment extends Fragment implements RecyclerItemTouchHelper
                 totalMoney.setText("0.0 €");
             }
         });
-        builder.setNegativeButton("NO",null);
+        builder.setNegativeButton("NO", null);
         builder.create().show();
     }
 
-    private void showSnackBar (final Journey deleted, final int position) {
-        Snackbar snackbar = Snackbar.make(this.getView(), "Historial eliminado", Snackbar.LENGTH_LONG);
+    private void showSnackBar(final Journey deleted, final int position) {
+        Snackbar snackbar = Snackbar.make(this.getView(), "Ruta eliminada", Snackbar.LENGTH_LONG);
         snackbar.setAction("Deshacer", new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    adapter.restoreItem(deleted, position);
-                    delete.setVisibility(View.VISIBLE);
-                    listIdDelete.remove(Integer.valueOf(deleted.getId()));
-                    initData();
-                }
-            });
-        snackbar.addCallback(new Snackbar.Callback() {
-           @Override
-           public void onDismissed(Snackbar snackbarInside, int event) {
-               if (event == Snackbar.Callback.DISMISS_EVENT_SWIPE || event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) {
-                   listIdDelete.remove(Integer.valueOf(deleted.getId()));
-                   JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
-                   journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(deleted.getId()));
-               }
-           }
+            @Override
+            public void onClick(View v) {
+                adapter.restoreItem(deleted, position);
+                delete.setVisibility(View.VISIBLE);
+                listIdDelete.remove(Integer.valueOf(deleted.getId()));
+                initData();
+            }
         });
-        snackbar.setActionTextColor(Color.BLUE);
+        snackbar.addCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar snackbarInside, int event) {
+                if (event == Snackbar.Callback.DISMISS_EVENT_SWIPE || event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) {
+                    listIdDelete.remove(Integer.valueOf(deleted.getId()));
+                    JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), HistoryFragment.this);
+                    journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(deleted.getId()));
+                }
+            }
+        });
+        snackbar.setActionTextColor(Color.rgb(255, 128, 255));
         snackbar.show();
 
         initData();

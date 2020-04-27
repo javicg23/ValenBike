@@ -54,6 +54,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:button="@null"
+            android:visibility="invisible"
             android:background="@drawable/ic_notifications_none_golden_24dp"/>
 
         <CheckBox

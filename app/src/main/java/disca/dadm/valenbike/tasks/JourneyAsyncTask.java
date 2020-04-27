@@ -6,7 +6,7 @@ import android.os.AsyncTask;
 import java.util.ArrayList;
 import java.util.List;
 
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
+import disca.dadm.valenbike.database.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.OnJourneyTaskCompleted;
 import disca.dadm.valenbike.models.Journey;
 
@@ -28,12 +28,15 @@ public class JourneyAsyncTask extends AsyncTask<String, Void, List<Journey>> {
     @Override
     protected List<Journey> doInBackground(String... param) {
         List<Journey> listJourneys = null;
-        switch(param[0]) {
+        switch (param[0]) {
             case GET_ALL_JOURNEYS:
                 listJourneys = ValenbikeSQLiteOpenHelper.getInstance(context).getAllJourneys();
                 break;
             case INSERT_JOURNEY:
-                ValenbikeSQLiteOpenHelper.getInstance(context).insertJourney(param[1], param[2], Double.parseDouble(param[3]), Double.parseDouble(param[4]), Integer.parseInt(param[5]), param[6]);
+                listJourneys = new ArrayList<Journey>();
+                int id = ValenbikeSQLiteOpenHelper.getInstance(context).insertJourney(param[1], param[2], Double.parseDouble(param[3]), Double.parseDouble(param[4]), Integer.parseInt(param[5]), param[6]);
+                Journey journey = new Journey(id);
+                listJourneys.add(journey);
                 break;
             case REMOVE_JOURNEY:
                 ValenbikeSQLiteOpenHelper.getInstance(context).removeJourney(Integer.parseInt(param[1]));

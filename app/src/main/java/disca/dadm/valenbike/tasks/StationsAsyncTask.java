@@ -2,21 +2,12 @@ package disca.dadm.valenbike.tasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.view.View;
 
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import disca.dadm.valenbike.database.ValenbikeDatabase;
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
-import disca.dadm.valenbike.fragments.HistoryFragment;
+import disca.dadm.valenbike.database.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
-import disca.dadm.valenbike.models.Journey;
-import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
 
 public class StationsAsyncTask extends AsyncTask<Integer, Void, List<StationGUI>> {
@@ -39,7 +30,7 @@ public class StationsAsyncTask extends AsyncTask<Integer, Void, List<StationGUI>
     @Override
     protected List<StationGUI> doInBackground(Integer... param) {
         List<StationGUI> listStations = null;
-        switch(param[0]) {
+        switch (param[0]) {
             case GET_ALL_STATIONS:
                 listStations = ValenbikeSQLiteOpenHelper.getInstance(context).getAllStations();
                 break;

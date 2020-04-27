@@ -5,17 +5,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.Journey;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
-    private static final String TAG = "HistoryAdapter";
     private List<Journey> historyList;
 
     public HistoryAdapter(List<Journey> historyList) {
@@ -37,7 +36,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         holder.date.setText(history.getDate());
         holder.time.setText(history.getDuration() + " min");
         holder.distance.setText(history.getDistance() + " km");
-        holder.money.setText(history.getPrice()+ " €");
+        holder.money.setText(history.getPrice() + " €");
     }
 
     @Override
@@ -73,7 +72,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         this.notifyDataSetChanged();
     }
 
-    public void restoreItem (Journey deleted, int position) {
+    public void restoreItem(Journey deleted, int position) {
         this.historyList.add(position, deleted);
         this.notifyItemInserted(position);
     }

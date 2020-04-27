@@ -1,37 +1,26 @@
 package disca.dadm.valenbike.fragments;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
@@ -39,45 +28,30 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.gson.JsonObject;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.file.Watchable;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.DataPassListener;
-import disca.dadm.valenbike.interfaces.OnJourneyTaskCompleted;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.interfaces.OnRouteTaskCompleted;
-import disca.dadm.valenbike.models.Journey;
 import disca.dadm.valenbike.models.ParametersRouteTask;
 import disca.dadm.valenbike.models.Station;
-import disca.dadm.valenbike.tasks.JourneyAsyncTask;
-import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.tasks.RouteAsyncTask;
 
-import static android.content.Context.INPUT_METHOD_SERVICE;
 import static disca.dadm.valenbike.fragments.MapFragment.LIMIT_MAP;
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 
-public class DirectionsFragment extends Fragment implements OnPetitionTaskCompleted, OnRouteTaskCompleted, OnJourneyTaskCompleted {
+public class DirectionsFragment extends Fragment implements OnPetitionTaskCompleted, OnRouteTaskCompleted {
 
-    public static final String ROUTE = "route";
     public static final String SOURCE_POSITION = "source_position";
     public static final String SOURCE_ADDRESS = "source_address";
     public static final String DESTINATION_POSITION = "destination_position";
@@ -106,9 +80,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private ImageButton swapRouteButton;
     private CheckBox locationCheck;
     private FloatingActionButton fabDirections;
-
-    private Station nearestBikeStation;
-    private Station nearestStandStation;
+    private String nearestBikeAddress, nearestStandAddress;
 
     public DirectionsFragment() {
         // Required empty public constructor
@@ -168,7 +140,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_directions, container, false);
         // hide bottom navigation and show back button on actionBar
-        BottomNavigationView navigationView = Objects.requireNonNull(getActivity()).findViewById(R.id.bottomView);
+        BottomNavigationView navigationView = container.getRootView().findViewById(R.id.bottomView);
         navigationView.setVisibility(View.GONE);
         Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
@@ -329,11 +301,12 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
     private void searchRoute() {
         showProgressDialog();
 
-        nearestBikeStation = getNearestStationToPosition(NEAREST_BIKE, sourcePosition);
+        Station nearestBikeStation = getNearestStationToPosition(NEAREST_BIKE, sourcePosition);
         LatLng nearestBikePosition = new LatLng(nearestBikeStation.getPosition().getLat(), nearestBikeStation.getPosition().getLng());
-
-        nearestStandStation = getNearestStationToPosition(NEAREST_PARKING, destinationPosition);
+        nearestBikeAddress = nearestBikeStation.getAddress();
+        Station nearestStandStation = getNearestStationToPosition(NEAREST_PARKING, destinationPosition);
         LatLng nearestStandPosition = new LatLng(nearestStandStation.getPosition().getLat(), nearestStandStation.getPosition().getLng());
+        nearestStandAddress = nearestStandStation.getAddress();
         if (sourcePosition == null || nearestBikeStation == null || nearestStandStation == null || destinationPosition == null) {
             Snackbar.make(rootView, getString(R.string.directions_route_not_available), Snackbar.LENGTH_SHORT).show();
             hideProgressDialog();
@@ -383,9 +356,7 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
                 responses.add(responseBike);
                 responses.add(responseDestination);
 
-                addRouteToHistoryDatabase();
-
-                dataPassListener.passRouteToMap(responses);
+                dataPassListener.passRouteToMap(responses, nearestBikeAddress, nearestStandAddress);
             }
         }
         // If no route was obtained then show a message saying so
@@ -441,37 +412,4 @@ public class DirectionsFragment extends Fragment implements OnPetitionTaskComple
         progressDialog.dismiss();
     }
 
-    private void addRouteToHistoryDatabase() {
-        try {
-            JSONObject object = new JSONObject(responseBike);
-            int distance = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("distance").getInt("value");
-            double distanceKm = (double) distance / 1000;
-            DecimalFormat dfDistance = new DecimalFormat("0.0");
-            distanceKm = Double.parseDouble(dfDistance.format(distanceKm).replace("," ,"."));
-            int duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
-            double durationToMinuts = duration / 60.0;
-            int durationDatabase = (int) durationToMinuts;
-            double price = 0;
-            if (durationToMinuts > 30) {
-                price += 0.52;
-                durationToMinuts -= 60;
-                while (durationToMinuts > 0) {
-                    price += 2.08;
-                    durationToMinuts -= 60;
-                }
-            }
-            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("es_ES"));
-            String dateDatabase = dateFormat.format(new Date());
-            JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), this);
-            journeyAsyncTask.execute(JourneyAsyncTask.INSERT_JOURNEY, nearestBikeStation.getAddress(), nearestStandStation.getAddress(),
-                    String.valueOf(distanceKm), String.valueOf(price), String.valueOf(durationDatabase), dateDatabase);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void responseJourneyDatabase(List<Journey> list) {
-
-    }
 }

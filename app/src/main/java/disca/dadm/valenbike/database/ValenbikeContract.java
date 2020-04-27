@@ -1,4 +1,4 @@
-package disca.dadm.valenbike.databaseSQLite;
+package disca.dadm.valenbike.database;
 
 import android.provider.BaseColumns;
 

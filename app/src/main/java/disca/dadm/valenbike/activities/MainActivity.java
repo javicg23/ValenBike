@@ -7,7 +7,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -163,9 +162,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             backDirectionsButton();
+            return true;
         }
-        return true;
+        return false;
     }
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -202,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     @Override
-    public void passRouteToMap(ArrayList<String> responses) {
+    public void passRouteToMap(ArrayList<String> responses, String nearestBikeAddress, String nearestStandAddress) {
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_MAP);
 
@@ -216,6 +217,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
         Bundle args = new Bundle();
         args.putStringArrayList(MapFragment.ROUTES_RESPONSES, responses);
+        args.putString(MapFragment.NEAREST_BIKE, nearestBikeAddress);
+        args.putString(MapFragment.NEAREST_STAND, nearestStandAddress);
         fragment.setArguments(args);
         changeFragment(fragment, TAG_MAP);
         restoreMapFragmentFromDirections();
@@ -249,7 +252,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     private void restoreMapFragmentFromDirections() {
-        navigationView.setVisibility(View.VISIBLE);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
     }
 

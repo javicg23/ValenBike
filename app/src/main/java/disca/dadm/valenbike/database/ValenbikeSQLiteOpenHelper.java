@@ -1,4 +1,4 @@
-package disca.dadm.valenbike.databaseSQLite;
+package disca.dadm.valenbike.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,12 +32,12 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
 
 
     private ValenbikeSQLiteOpenHelper(Context context) {
-        super(context, ValenbikeContract.ValenbikeBase.DB_NAME, null, 1);
+        super(context, ValenbikeContract.ValenbikeBase.DB_NAME, null, ValenbikeContract.ValenbikeBase.DB_VERSION);
     }
 
     public synchronized static ValenbikeSQLiteOpenHelper getInstance(Context context) {
         if (valenbikeSQLiteOpenHelper == null) {
-            valenbikeSQLiteOpenHelper =  new ValenbikeSQLiteOpenHelper(context);
+            valenbikeSQLiteOpenHelper = new ValenbikeSQLiteOpenHelper(context);
         }
         return valenbikeSQLiteOpenHelper;
     }
@@ -70,7 +70,7 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
         Cursor cursor = database.query(tableStation, new String[]{stationNumber, stationFavourite, stationReminder}, null, null, null, null, null);
 
         ArrayList<StationGUI> stations = new ArrayList<>();
-        while(cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
             StationGUI station = new StationGUI(cursor.getInt(0), cursor.getInt(1), cursor.getInt(2));
             stations.add(station);
         }
@@ -86,7 +86,7 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
             SQLiteDatabase database = getReadableDatabase();
 
             Cursor cursor = database.query(tableStation, new String[]{stationNumber, stationFavourite, stationReminder}, stationNumber + "=?", new String[]{String.valueOf(number)}, null, null, null);
-            while(cursor.moveToNext()) {
+            while (cursor.moveToNext()) {
                 station = new StationGUI(cursor.getInt(0), cursor.getInt(1), cursor.getInt(2));
             }
             cursor.close();
@@ -102,7 +102,7 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
                 journeyColumnPrice, journeyColumnDuration, journeyColumnDate}, null, null, null, null, null);
 
         ArrayList<Journey> journeys = new ArrayList<>();
-        while(cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
             Journey journey = new Journey(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getDouble(3),
                     cursor.getDouble(4), cursor.getInt(5), cursor.getString(6));
             journeys.add(journey);
@@ -166,7 +166,7 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
         if (existStation(number)) {
             SQLiteDatabase database = getWritableDatabase();
 
-            database.delete(tableStation, stationNumber + "=?", new String[] {String.valueOf(number)});
+            database.delete(tableStation, stationNumber + "=?", new String[]{String.valueOf(number)});
             database.close();
             res = true;
         }
@@ -193,14 +193,14 @@ public class ValenbikeSQLiteOpenHelper extends SQLiteOpenHelper {
     public boolean removeJourney(int id) {
         SQLiteDatabase database = getWritableDatabase();
 
-        database.delete(tableJourney, journeyColumnId + "=?", new String[] {String.valueOf(id)});
+        database.delete(tableJourney, journeyColumnId + "=?", new String[]{String.valueOf(id)});
         database.close();
         return true;
     }
 
     public boolean removeAllJourneys() {
         SQLiteDatabase database = getWritableDatabase();
-        database.delete(tableJourney,null,null);
+        database.delete(tableJourney, null, null);
         database.close();
         return true;
     }

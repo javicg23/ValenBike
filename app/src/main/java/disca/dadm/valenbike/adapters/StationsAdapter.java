@@ -2,23 +2,21 @@ package disca.dadm.valenbike.adapters;
 
 import android.app.AlertDialog;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.media.Image;
 import android.text.format.DateFormat;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -28,12 +26,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
-import disca.dadm.valenbike.fragments.MapFragment;
+import disca.dadm.valenbike.database.ValenbikeSQLiteOpenHelper;
+import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
@@ -42,27 +42,30 @@ import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.StationsAsyncTask;
 
 import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
+import static disca.dadm.valenbike.utils.Tools.cleanString;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
 import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
 
-public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.StationsViewHolder> implements OnGeocoderTaskCompleted {
+public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.StationsViewHolder> implements OnGeocoderTaskCompleted, Filterable {
 
-    private static final String TAG = "StationsAdapter";
     private List<StationGUI> stationsList;
+    private List<StationGUI> stationsListFull;
     private DataPassListener dataPassListener;
     private Context context;
     private StationGUI stationGUI;
     private NotificationManagerCompat notificationManagerCompat;
+    private TextView tvNotFavouriteText;
 
     // loading progress
     private AlertDialog progressDialog;
 
 
-    public StationsAdapter(List<StationGUI> stationsList, DataPassListener dataPassListener, Context context) {
+    public StationsAdapter(List<StationGUI> stationsList, DataPassListener dataPassListener, Context context, TextView tvNotFavouriteText) {
         this.stationsList = stationsList;
+        this.stationsListFull = new ArrayList<>(stationsList);
         this.dataPassListener = dataPassListener;
         this.context = context;
-
+        this.tvNotFavouriteText = tvNotFavouriteText;
     }
 
     @NonNull
@@ -78,7 +81,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         holder.numberStation.setText(String.valueOf(stationGUI.getNumber()));
         holder.address.setText(stationGUI.getAddress());
 
-        boolean open = changeXML(stationGUI.getStatus().equals("OPEN"), holder);
+        boolean open = changeXML(stationGUI.getStatus().equals("OPEN"), holder, position);
         if (open) {
             boolean isExpanded = stationsList.get(position).isExpanded();
             TransitionManager.beginDelayedTransition(holder.expandableLayout, new AutoTransition());
@@ -113,8 +116,10 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 }
             });
 
-            boolean isReminderCheck = stationsList.get(position).isReminderCheck();
-            holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
+            if (stationsList.get(position).getAvailableBikes() == 0) {
+                boolean isReminderCheck = stationsList.get(position).isReminderCheck();
+                holder.reminder.setBackgroundResource(isReminderCheck ? R.drawable.ic_notifications_active_golden_24dp : R.drawable.ic_notifications_none_golden_24dp);
+            }
 
             boolean isFavouriteCheck = stationsList.get(position).isFavouriteCheck();
             holder.favourite.setBackgroundResource(isFavouriteCheck ? R.drawable.ic_favorite_magenta_24dp : R.drawable.ic_favorite_border_magenta_24dp);
@@ -123,14 +128,14 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
 
     @Override
     public int getItemCount() {
-        if(stationsList != null) {
+        if (stationsList != null) {
             return stationsList.size();
         }
 
         return 0;
     }
 
-    private boolean changeXML(boolean open, final StationsAdapter.StationsViewHolder holder) {
+    private boolean changeXML(boolean open, final StationsAdapter.StationsViewHolder holder, int position) {
         if (open) {
             holder.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -140,7 +145,9 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             });
             holder.expandableLayout.setVisibility(View.VISIBLE);
             holder.ivArrow.setVisibility(View.VISIBLE);
-            holder.reminder.setVisibility(View.VISIBLE);
+            if (stationsList.get(position).getAvailableBikes() == 0) {
+                holder.reminder.setVisibility(View.VISIBLE);
+            }
             holder.numFreeBikes.setVisibility(View.VISIBLE);
             holder.numFreeGaps.setVisibility(View.VISIBLE);
             holder.ivBike.setVisibility(View.VISIBLE);
@@ -186,11 +193,43 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
         progressDialog.dismiss();
     }
 
+    @Override
+    public Filter getFilter() {
+        return filter;
+    }
+
+    private Filter filter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<StationGUI> filteredList = new ArrayList<>();
+            if (constraint == null || constraint.length() == 0) {
+                filteredList.addAll(stationsListFull);
+            } else {
+                String filterPattern = cleanString(constraint.toString().toLowerCase().trim());
+                for (StationGUI item : stationsListFull) {
+                    if (cleanString(item.getAddress()).toLowerCase().contains(filterPattern)) {
+                        filteredList.add(item);
+                    }
+                }
+            }
+            FilterResults results = new FilterResults();
+            results.values = filteredList;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            stationsList.clear();
+            stationsList.addAll((List) results.values);
+            notifyDataSetChanged();
+        }
+    };
+
     class StationsViewHolder extends RecyclerView.ViewHolder implements OnStationTaskCompleted {
         private static final String TAG = "StationsViewHolder";
 
         private ConstraintLayout expandableLayout, constraintLayout;
-        private TextView numberStation, numFreeBikes, numFreeGaps, distance, address, lastUpdate;
+        private TextView numberStation, numFreeBikes, numFreeGaps, address, lastUpdate;
         private ImageView ivArrow, banking, ivBike, ivParking;
         private CheckBox reminder, favourite;
         private ImageButton ibShowMap, ibShowDistance;
@@ -214,6 +253,7 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
             closedStation = itemView.findViewById(R.id.btnClosedStation);
             ivBike = itemView.findViewById(R.id.ivBikeStation);
             ivParking = itemView.findViewById(R.id.ivParkingStation);
+
 
             constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -239,12 +279,17 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                         stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, station.getNumber(), ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND,
                                 station.isReminderCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
                         favourite.setBackgroundResource(R.drawable.ic_favorite_magenta_24dp);
+                        StationsFragment.stationFavouriteList.add(station);
                     } else {
                         station.setFavouriteCheck(!station.isFavouriteCheck());
                         StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
                         stationsAsyncTask.execute(StationsAsyncTask.UPDATE_STATION, station.getNumber(), ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND,
                                 station.isReminderCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
                         favourite.setBackgroundResource(R.drawable.ic_favorite_border_magenta_24dp);
+                        StationsFragment.stationFavouriteList.remove(station);
+                        if (StationsFragment.favouriteChecked && StationsFragment.stationFavouriteList.size() == 0) {
+                            tvNotFavouriteText.setVisibility(View.VISIBLE);
+                        }
                     }
                     notifyItemChanged(getAdapterPosition());
                 }
@@ -254,28 +299,31 @@ public class StationsAdapter extends RecyclerView.Adapter<StationsAdapter.Statio
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     StationGUI station = stationsList.get(getAdapterPosition());
-                    if (!station.isReminderCheck()){
-                        station.setReminderCheck(!station.isReminderCheck());
-                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
-                        stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, station.getNumber(),
-                                station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND);
-                        reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
+                    if (station.getAvailableBikes() == 0) {
+                        reminder.setVisibility(View.VISIBLE);
+                        if (!station.isReminderCheck()) {
+                            station.setReminderCheck(!station.isReminderCheck());
+                            StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                            stationsAsyncTask.execute(StationsAsyncTask.INSERT_STATION, station.getNumber(),
+                                    station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND);
+                            reminder.setBackgroundResource(R.drawable.ic_notifications_active_golden_24dp);
 
-                        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                                .setSmallIcon(R.drawable.ic_notification)
-                                .setContentTitle("¡Ya hay bicis disponibles!")
-                                .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
-                                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                                .build();
-                        notificationManagerCompat = NotificationManagerCompat.from(context);
-                        notificationManagerCompat.notify(1, notification);
-                    } else {
-                        station.setReminderCheck(!station.isReminderCheck());
-                        StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
-                        stationsAsyncTask.execute(StationsAsyncTask.UPDATE_STATION, station.getNumber(),
-                                station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
-                        reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                            Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.ic_notification)
+                                    .setContentTitle("¡Ya hay bicis disponibles!")
+                                    .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
+                                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                    .build();
+                            notificationManagerCompat = NotificationManagerCompat.from(context);
+                            notificationManagerCompat.notify(1, notification);
+                        } else {
+                            station.setReminderCheck(!station.isReminderCheck());
+                            StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(context, StationsViewHolder.this);
+                            stationsAsyncTask.execute(StationsAsyncTask.UPDATE_STATION, station.getNumber(),
+                                    station.isFavouriteCheck() ? ValenbikeSQLiteOpenHelper.ENABLED_FAVREMIND : ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND, ValenbikeSQLiteOpenHelper.DISABLED_FAVREMIND);
+                            reminder.setBackgroundResource(R.drawable.ic_notifications_none_golden_24dp);
+                        }
                     }
                     notifyItemChanged(getAdapterPosition());
                 }

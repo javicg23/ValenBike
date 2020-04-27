@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,12 +22,9 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -61,6 +57,7 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -72,29 +69,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.adapters.RouteAdapter;
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
+import disca.dadm.valenbike.database.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
+import disca.dadm.valenbike.interfaces.OnJourneyTaskCompleted;
 import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
 import disca.dadm.valenbike.models.ClusterStation;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
+import disca.dadm.valenbike.models.Journey;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
+import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Route;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
-import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
+import disca.dadm.valenbike.tasks.JourneyAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.tasks.StationsAsyncTask;
 import disca.dadm.valenbike.utils.MarkerClusterRenderer;
-import disca.dadm.valenbike.utils.Tools;
 
 import static disca.dadm.valenbike.activities.MainActivity.CHANNEL_ID;
 import static disca.dadm.valenbike.utils.Tools.coordinatesToAddress;
@@ -103,7 +104,7 @@ import static disca.dadm.valenbike.utils.Tools.getMarkerIconFromDrawable;
 import static disca.dadm.valenbike.utils.Tools.getStations;
 import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted, OnStationTaskCompleted {
+public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetitionTaskCompleted, OnGeocoderTaskCompleted, OnStationTaskCompleted, OnJourneyTaskCompleted {
 
     private final float CAMERA_ZOOM_STREET = 17;
     private final float CAMERA_ZOOM_CITY = 12;
@@ -119,6 +120,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private static final int ROUTE_MARKER = 0;
     public static final int ROUTE_STATION = 1;
     public static final String ROUTES_RESPONSES = "route_responses";
+    public static final String NEAREST_BIKE = "nearest_bike";
+    public static final String NEAREST_STAND = "nearest_station";
+    public static final String CHECKBOX_ADD_ROUTE_CHECK = "checkbox_add_route_check";
+    public static final String INSERTED_ROUTE = "inserted_route";
+    public static final String ID_JOURNEY_DATABASE = "id_journey_database";
     private static int RECEIVED_STATIONS_NO = 0;
     private static int RECEIVED_STATIONS_YES = 1;
 
@@ -171,6 +177,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     private Station station;
     private CheckBox reminder;
     private CheckBox favourite;
+    private BottomNavigationView bottomNavigationView;
+    private String nearestBikeAddress, nearestStandAddress;
+    private boolean checkBoxAddRouteChecked, insertedRoute;
+    private CheckBox checkBoxAddToHistory;
+    private int idJourneyDatabase;
 
     public MapFragment() {
         // Required empty public constructor
@@ -191,6 +202,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             mapType = savedInstanceState.getInt(TAG_MAP_TYPE);
             cameraPosition = savedInstanceState.getParcelable(TAG_CAMERA_POSITION);
             stringResponses = savedInstanceState.getStringArrayList(TAG_ROUTE);
+            nearestBikeAddress = savedInstanceState.getString(NEAREST_BIKE);
+            nearestStandAddress = savedInstanceState.getString(NEAREST_STAND);
+            checkBoxAddRouteChecked = savedInstanceState.getBoolean(CHECKBOX_ADD_ROUTE_CHECK);
+            insertedRoute = savedInstanceState.getBoolean(INSERTED_ROUTE);
+            idJourneyDatabase = savedInstanceState.getInt(ID_JOURNEY_DATABASE);
         }
     }
 
@@ -231,7 +247,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         autocompleteSearch = (AutocompleteSupportFragment) getChildFragmentManager().findFragmentById(R.id.autocompleteSearch);
         progressDialog = getDialogProgressBar(getContext()).create();
         mapView = rootView.findViewById(R.id.map);
+        bottomNavigationView = container.getRootView().findViewById(R.id.bottomView);
 
+        bottomNavigationView.setVisibility(View.GONE);
         initSearch();
         fabsListeners();
         createPopupMenu();
@@ -248,6 +266,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         outState.putInt(TAG_MAP_TYPE, mapType);
         outState.putParcelable(TAG_CAMERA_POSITION, map.getCameraPosition());
         outState.putStringArrayList(TAG_ROUTE, stringResponses);
+        outState.putString(NEAREST_BIKE, nearestBikeAddress);
+        outState.putString(NEAREST_STAND, nearestStandAddress);
+        outState.putBoolean(CHECKBOX_ADD_ROUTE_CHECK, checkBoxAddRouteChecked);
+        outState.putBoolean(INSERTED_ROUTE, insertedRoute);
+        outState.putInt(ID_JOURNEY_DATABASE, idJourneyDatabase);
         super.onSaveInstanceState(outState);
         if (mapView != null) {
             mapView.onSaveInstanceState(outState);
@@ -291,9 +314,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (args != null) {
             // pass String to JSONOBject
             idStationResponse = args.getInt("station_response");
+
             if (idStationResponse == 0) {
                 stringResponses = args.getStringArrayList(ROUTES_RESPONSES);
+                nearestBikeAddress = args.getString(NEAREST_BIKE);
+                nearestStandAddress = args.getString(NEAREST_STAND);
                 showIndicationsRoute = true;
+                insertedRoute = false;
             }
             routeDirections = ROUTE_MARKER;
         }
@@ -482,11 +509,42 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         TextView destination = dialogView.findViewById(R.id.indicationsDestination);
         TextView durationText = dialogView.findViewById(R.id.indicationsDuration);
         TextView distanceText = dialogView.findViewById(R.id.indicationsDistance);
+        TextView moneyText = dialogView.findViewById(R.id.tvMoneyBottomSheet);
+        checkBoxAddToHistory = dialogView.findViewById(R.id.ibAddToHistory);
+
+        indicationsDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                if (checkBoxAddToHistory.isChecked() && !insertedRoute) {
+                    addRouteToHistoryDatabase();
+                    insertedRoute = true;
+                    Snackbar.make(rootView, getString(R.string.route_added_database), Snackbar.LENGTH_SHORT).show();
+                } else if (!checkBoxAddToHistory.isChecked() && insertedRoute) {
+                    JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), MapFragment.this);
+                    journeyAsyncTask.execute(JourneyAsyncTask.REMOVE_JOURNEY, String.valueOf(idJourneyDatabase));
+                    insertedRoute = false;
+                    Snackbar.make(rootView, getString(R.string.route_delete_database), Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        putBinIconRed();
+
+        checkBoxAddToHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!isChecked) {
+                    checkBoxAddToHistory.setBackground(getResources().getDrawable(R.drawable.ic_add_circle_outline_accent_24dp, null));
+                } else {
+                    checkBoxAddToHistory.setBackground(getResources().getDrawable(R.drawable.ic_delete_red_24dp, null));
+                }
+                checkBoxAddRouteChecked = isChecked;
+            }
+        });
 
         // calculate duration in minutes and distance in kilometers
         durationText.setText(getGloblalDurationRoute());
         distanceText.setText(getGlobalDistanceRoute());
-
         try {
             // obtain start address
             source.setText(getStartAddess(0));
@@ -495,6 +553,48 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             String endAddress = routeResponses.get(routeResponses.size() - 1).getJSONArray("routes")
                     .getJSONObject(0).getJSONArray("legs").getJSONObject(0).getString("end_address");
             destination.setText(endAddress);
+
+            int duration = routeResponses.get(1).getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
+            double durationToMinuts = duration / 60.0;
+            double price = 0;
+            if (durationToMinuts > 30) {
+                price += 0.52;
+                durationToMinuts -= 60;
+                while (durationToMinuts > 0) {
+                    price += 2.08;
+                    durationToMinuts -= 60;
+                }
+            }
+            moneyText.setText(String.valueOf(price));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addRouteToHistoryDatabase() {
+        try {
+            JSONObject object = routeResponses.get(1);
+            int distance = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("distance").getInt("value");
+            double distanceKm = (double) distance / 1000;
+            DecimalFormat dfDistance = new DecimalFormat("0.0");
+            distanceKm = Double.parseDouble(dfDistance.format(distanceKm).replace(",", "."));
+            int duration = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
+            double durationToMinuts = duration / 60.0;
+            int durationDatabase = (int) durationToMinuts;
+            double price = 0;
+            if (durationToMinuts > 30) {
+                price += 0.52;
+                durationToMinuts -= 60;
+                while (durationToMinuts > 0) {
+                    price += 2.08;
+                    durationToMinuts -= 60;
+                }
+            }
+            java.text.DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("es_ES"));
+            String dateDatabase = dateFormat.format(new Date());
+            JourneyAsyncTask journeyAsyncTask = new JourneyAsyncTask(getContext(), this);
+            journeyAsyncTask.execute(JourneyAsyncTask.INSERT_JOURNEY, nearestBikeAddress, nearestStandAddress,
+                    String.valueOf(distanceKm), String.valueOf(price), String.valueOf(durationDatabase), dateDatabase);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -572,6 +672,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             stringResponses.clear();
         }
         autocompleteSearch.setText("");
+        nearestBikeAddress = null;
+        nearestStandAddress = null;
+        checkBoxAddRouteChecked = false;
+        insertedRoute = false;
+        idJourneyDatabase = 0;
     }
 
     private void initMapAndLocation(Bundle savedInstanceState) {
@@ -668,6 +773,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             @Override
             public void onPolylineClick(Polyline polyline) {
                 if (indicationsDialog != null) {
+                    putBinIconRed();
                     indicationsDialog.show();
                 }
             }
@@ -801,6 +907,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 destinationPos = position;
                 destinationAdd = address;
             }
+            bottomNavigationView.setVisibility(View.GONE);
             dataPassListener.passLocationToDirection(locationPos, locationAdd, destinationPos, destinationAdd);
         }
         hideProgressDialog();
@@ -811,15 +918,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
         if (routeDirections == ROUTE_MARKER) {
             if (markerSearch != null) {
                 receivedMarkerAddress = false;
-                coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_MARKER, markerSearch.getPosition());
+                coordinatesToAddress(getContext(), this, ParametersGeocoderTask.LOCATION_MARKER, markerSearch.getPosition());
             }
         } else {
             receivedStationAddress = false;
-            coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_STATION, stationLatLng);
+            coordinatesToAddress(getContext(), this, ParametersGeocoderTask.LOCATION_STATION, stationLatLng);
         }
         if (locationActive && lastLocation != null) {
             receivedGPSAddress = false;
-            coordinatesToAddress(getContext(),this, ParametersGeocoderTask.LOCATION_GPS, lastLocation);
+            coordinatesToAddress(getContext(), this, ParametersGeocoderTask.LOCATION_GPS, lastLocation);
         }
 
         if (receivedStationAddress && receivedMarkerAddress && receivedGPSAddress) {
@@ -922,12 +1029,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
             requestInProgress = true;
             PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(), this);
             petitionAsyncTask.execute(number);
+        } else {
+            bottomNavigationView.setVisibility(View.VISIBLE);
         }
     }
 
     private void requestDone() {
         requestInProgress = false;
         hideProgressDialog();
+        if (idStationResponse == 0) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -958,6 +1070,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
     public void receivedStation(Station station) {
         dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_marker, null);
         dialog = new BottomSheetDialog(Objects.requireNonNull(getActivity()));
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                bottomNavigationView.setVisibility(View.VISIBLE);
+            }
+        });
         this.station = station;
         StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(getContext(), this);
         stationsAsyncTask.execute(StationsAsyncTask.GET_STATION, station.getNumber());
@@ -995,31 +1113,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             });
 
-            if (stationDatabase.isReminderCheck()) {
-                reminder.setChecked(true);
-                reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
-            }
-
-            reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
-
-                        Notification notification = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
-                                .setSmallIcon(R.drawable.ic_notification)
-                                .setContentTitle("¡Ya hay bicis disponibles!")
-                                .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
-                                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                                .build();
-                        notificationManagerCompat = NotificationManagerCompat.from(getContext());
-                        notificationManagerCompat.notify(1, notification);
-                    } else {
-                        reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp, null));
-                    }
+            if (station.getAvailableBikes() == 0) {
+                reminder.setVisibility(View.VISIBLE);
+                if (stationDatabase.isReminderCheck()) {
+                    reminder.setChecked(true);
+                    reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
                 }
-            });
+
+                reminder.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked) {
+                            reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_active_golden_24dp, null));
+
+                            Notification notification = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.ic_notification)
+                                    .setContentTitle("¡Ya hay bicis disponibles!")
+                                    .setContentText("En " + station.getAddress() + " ya hay bicis disponibles")
+                                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                                    .build();
+                            notificationManagerCompat = NotificationManagerCompat.from(getContext());
+                            notificationManagerCompat.notify(1, notification);
+                        } else {
+                            reminder.setBackground(getResources().getDrawable(R.drawable.ic_notifications_none_golden_24dp, null));
+                        }
+                    }
+                });
+            }
         } else {
             layoutInfo.setVisibility(View.GONE);
             layoutClosed.setVisibility(View.VISIBLE);
@@ -1079,7 +1200,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, OnPetit
                 }
             });
             dialog.show();
-            requestDone();
+        }
+        requestDone();
+    }
+
+    @Override
+    public void responseJourneyDatabase(List<Journey> list) {
+        if (list != null && list.size() == 1) {
+            idJourneyDatabase = list.get(0).getId();
+        }
+    }
+
+    public void putBinIconRed() {
+        if (insertedRoute) {
+            checkBoxAddToHistory.setChecked(true);
+            checkBoxAddToHistory.setBackground(getResources().getDrawable(R.drawable.ic_delete_red_24dp, null));
         }
     }
 

@@ -6,10 +6,8 @@ import android.location.Geocoder;
 import android.os.AsyncTask;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
-import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 

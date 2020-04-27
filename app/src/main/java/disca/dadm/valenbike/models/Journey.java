@@ -13,6 +13,10 @@ public class Journey {
 
     }
 
+    public Journey(int id) {
+        this.id = id;
+    }
+
     public Journey(int id, String origin, String destiny, double distance, double price, int duration, String date) {
         this.id = id;
         this.origin = origin;

@@ -91,4 +91,13 @@
     <string name="channel_name">Canal1</string>
     <string name="channel_description">Canal para notificaciones de bicis</string>
     <string name="places_error_search">No se han podido cargar resultados</string>
+    <string name="filter_stations_alphabetically">Alfabéticamente</string>
+    <string name="filter_stations_number">Numéricamente</string>
+    <string name="filter_stations_favourite">Favoritas</string>
+    <string name="search_word">Buscar</string>
+    <string name="filter_word">Filtrar</string>
+    <string name="dont_have_favourite_stations">No tienes estaciones favoritas</string>
+    <string name="route_delete_database">La ruta ha sido eliminada de la base de datos</string>
+    <string name="route_added_database">La ruta ha sido añadida a la base de datos</string>
+    <string name="dont_have_history_routes">No tienes rutas en el historial</string>
 </resources>

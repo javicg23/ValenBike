@@ -1,32 +1,22 @@
 package disca.dadm.valenbike.adapters;
 
 import android.text.Html;
-import android.transition.AutoTransition;
-import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.Indication;
-import disca.dadm.valenbike.models.Route;
 
-import static android.text.Html.fromHtml;
 
 public class IndicationAdapter extends RecyclerView.Adapter<IndicationAdapter.IndicationViewHolder> {
-    private static final String TAG = "IndicationsAdapter";
+
     private List<Indication> indications;
 
     public IndicationAdapter(List<Indication> indications) {

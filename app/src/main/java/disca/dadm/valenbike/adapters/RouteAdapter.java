@@ -23,7 +23,7 @@ import disca.dadm.valenbike.models.Indication;
 import disca.dadm.valenbike.models.Route;
 
 public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHolder> {
-    private static final String TAG = "RouteAdapter";
+
     private List<Route> routes;
 
     public RouteAdapter(List<Route> routes) {

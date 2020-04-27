@@ -1,5 +1,6 @@
 package disca.dadm.valenbike.utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,21 +9,20 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.material.snackbar.Snackbar;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
-import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.interfaces.OnGeocoderTaskCompleted;
 import disca.dadm.valenbike.models.ParametersGeocoderTask;
 import disca.dadm.valenbike.models.Position;
@@ -31,6 +31,7 @@ import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.GeocoderAsyncTask;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
+import static android.content.Context.INPUT_METHOD_SERVICE;
 
 public class Tools {
 
@@ -62,20 +63,34 @@ public class Tools {
         }
     }
 
+    public static String cleanString(String wordToClean) {
+        String wordClean = Normalizer.normalize(wordToClean, Normalizer.Form.NFD);
+        wordClean = wordClean.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return wordClean;
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) Objects.requireNonNull(activity).getSystemService(INPUT_METHOD_SERVICE);
+        View focus = activity.getCurrentFocus();
+        if (imm != null && focus != null) {
+            imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        }
+    }
+
     public static AlertDialog.Builder getDialogProgressBar(Context context) {
 
-            builder = new AlertDialog.Builder(context);
+        builder = new AlertDialog.Builder(context);
 
-            builder.setTitle(context.getString(R.string.dialog_loading_information));
+        builder.setTitle(context.getString(R.string.dialog_loading_information));
 
-            ProgressBar progressBar = new ProgressBar(context);
-            progressBar.setPadding(17, 17, 17, 17);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            progressBar.setLayoutParams(lp);
-            builder.setCancelable(false);
-            builder.setView(progressBar);
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setPadding(17, 17, 17, 17);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        progressBar.setLayoutParams(lp);
+        builder.setCancelable(false);
+        builder.setView(progressBar);
 
         return builder;
     }

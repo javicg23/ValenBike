@@ -1,7 +1,5 @@
 package disca.dadm.valenbike.models;
 
-import android.widget.CheckBox;
-
 public class StationGUI extends Station {
     private boolean expanded;
     private boolean arrowDown;
@@ -14,7 +12,8 @@ public class StationGUI extends Station {
         this.arrowDown = false;
     }
 
-    public StationGUI() {}
+    public StationGUI() {
+    }
 
     public StationGUI(int number, int favourite, int reminder) {
         super.setNumber(number);

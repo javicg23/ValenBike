@@ -1,6 +1,5 @@
 package disca.dadm.valenbike.tasks;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;

@@ -1,8 +1,6 @@
 package disca.dadm.valenbike.fragments;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -10,39 +8,45 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.SearchView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.lang.ref.WeakReference;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import disca.dadm.valenbike.R;
-//import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.adapters.StationsAdapter;
-import disca.dadm.valenbike.databaseSQLite.ValenbikeSQLiteOpenHelper;
 import disca.dadm.valenbike.interfaces.DataPassListener;
 import disca.dadm.valenbike.interfaces.OnStationTaskCompleted;
-import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.StationsAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
-import disca.dadm.valenbike.utils.test;
 
-import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
-//import disca.dadm.valenbike.tasks.StationsAsyncTask;
+import static disca.dadm.valenbike.utils.Tools.cleanString;
+import static disca.dadm.valenbike.utils.Tools.hideKeyboard;
 
 public class StationsFragment extends Fragment implements OnStationTaskCompleted {
 
     private RecyclerView recyclerView;
     private List<StationGUI> stationsList;
     private DataPassListener dataPassListener;
+    public static List<StationGUI> stationFavouriteList = new ArrayList<>();
     public static final String STATION_RESPONSE = "station_response";
-
-//    private WeakReference<StationsAsyncTask> asyncTaskWeakRef;
+    public static boolean favouriteChecked = false;
+    private TextView tvNotFavouriteText;
+    private StationsAdapter stationsAdapter;
+    private MenuItem menuItemFilter;
+    private BottomNavigationView bottomNavigationView;
 
     public StationsFragment() {
         // Required empty public constructor
@@ -55,10 +59,6 @@ public class StationsFragment extends Fragment implements OnStationTaskCompleted
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setHasOptionsMenu(true);
-        setRetainInstance(true);
-
     }
 
     /**
@@ -72,61 +72,77 @@ public class StationsFragment extends Fragment implements OnStationTaskCompleted
         View view = inflater.inflate(R.layout.fragment_stations, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerViewStations);
+        tvNotFavouriteText = view.findViewById(R.id.tvNotFavouriteStations);
+        bottomNavigationView = container.getRootView().findViewById(R.id.bottomView);
 
         StationsAsyncTask stationsAsyncTask = new StationsAsyncTask(getContext(), this);
         stationsAsyncTask.execute(StationsAsyncTask.GET_ALL_STATIONS);
+
+        setHasOptionsMenu(true);
 
         return view;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_stations, menu);
+        menuItemFilter = menu.findItem(R.id.menu_item_filter_button);
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.filter_station_menu, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        item.setChecked(true);
         switch (item.getItemId()) {
-            case R.id.menu_filter:
-                // Show check menu to select filter options
-                AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
-                builder.setTitle(R.string.selection_filter_menu_station);
-                final String[] options = new String[]{
-                        "Estaciones favoritas",
-                        "Estaciones con notificaciones"
-                };
-                final boolean[] checkedOptions = new boolean[] {
-                        false,
-                        false
-                };
-
-                builder.setMultiChoiceItems(options, checkedOptions, new DialogInterface.OnMultiChoiceClickListener() {
+            case R.id.menu_item_search_button:
+                item.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                        checkedOptions[which] = isChecked;
-                    }
-                });
+                    public boolean onMenuItemActionExpand(MenuItem item) {
+                        bottomNavigationView.setVisibility(View.GONE);
+                        SearchView searchView = (SearchView) item.getActionView();
+                        searchView.onActionViewExpanded();
+                        searchView.setQueryHint("Buscar...");
+                        searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                        menuItemFilter.setEnabled(false);
 
-                builder.setPositiveButton(R.string.filter_menu_station, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        for(int i = 0; i < options.length; i++) {
-                            if (checkedOptions[i]) {
-                                // TODO: Get stations that match with the selected filter options.
+                        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                            @Override
+                            public boolean onQueryTextSubmit(String query) {
+                                return false;
                             }
-                        }
+
+                            @Override
+                            public boolean onQueryTextChange(String newText) {
+                                stationsAdapter.getFilter().filter(cleanString(newText).toLowerCase());
+                                return false;
+                            }
+                        });
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onMenuItemActionCollapse(MenuItem item) {
+                        hideKeyboard(getActivity());
+                        menuItemFilter.setEnabled(true);
+                        bottomNavigationView.setVisibility(View.VISIBLE);
+                        return true;
                     }
                 });
-                builder.create().show();
                 return true;
-
-            default:
-                break;
-
+            case R.id.station_filter_alphabetically:
+                orderListAndShow(Station.alphabetically, stationsList);
+                hideTextView();
+                return true;
+            case R.id.station_filter_number:
+                orderListAndShow(Station.numerically, stationsList);
+                hideTextView();
+                return true;
+            case R.id.station_filter_favourite:
+                favouriteChecked = true;
+                orderListAndShow(Station.numerically, stationFavouriteList);
+                return true;
         }
-
-        return false;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -153,12 +169,25 @@ public class StationsFragment extends Fragment implements OnStationTaskCompleted
             for (StationGUI stationGUI : stationsList) {
                 if (stationGUI.getNumber() == stationGUIDatabase.getNumber()) {
                     stationGUI.setFavouriteCheck(stationGUIDatabase.isFavouriteCheck());
+                    if (stationGUIDatabase.isFavouriteCheck()) {
+                        stationFavouriteList.add(stationGUIDatabase);
+                    }
                     stationGUI.setReminderCheck(stationGUIDatabase.isReminderCheck());
                     break;
                 }
             }
         }
-        StationsAdapter stationsAdapter = new StationsAdapter(stationsList, dataPassListener, getContext());
+        orderListAndShow(Station.numerically, stationsList);
+    }
+
+    private void orderListAndShow(Comparator<Station> comparator, List<StationGUI> stationList) {
+        Collections.sort(stationList, comparator);
+        stationsAdapter = new StationsAdapter(stationList, dataPassListener, getContext(), tvNotFavouriteText);
         recyclerView.setAdapter(stationsAdapter);
+    }
+
+    private void hideTextView() {
+        favouriteChecked = false;
+        tvNotFavouriteText.setVisibility(View.GONE);
     }
 }

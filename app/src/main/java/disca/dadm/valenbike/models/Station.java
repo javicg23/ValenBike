@@ -1,5 +1,9 @@
 package disca.dadm.valenbike.models;
 
+import java.util.Comparator;
+
+import static disca.dadm.valenbike.utils.Tools.cleanString;
+
 public class Station {
     private int number;
     private String contract_name;
@@ -131,6 +135,22 @@ public class Station {
     public boolean isActive() {
         return status.equals("OPEN");
     }
+
+    public static Comparator<Station> numerically = new Comparator<Station>() {
+        @Override
+        public int compare(Station station1, Station station2) {
+            return station1.getNumber() - station2.getNumber();
+        }
+    };
+
+    public static Comparator<Station> alphabetically = new Comparator<Station>() {
+        @Override
+        public int compare(Station station1, Station station2) {
+            String station1Clean = cleanString(station1.getAddress());
+            String station2Clean = cleanString(station2.getAddress());
+            return station1Clean.toLowerCase().compareTo(station2Clean.toLowerCase());
+        }
+    };
 
 
 }

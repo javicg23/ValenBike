@@ -18,7 +18,7 @@ import disca.dadm.valenbike.R;
 import disca.dadm.valenbike.models.Information;
 
 public class InformationAdapter extends RecyclerView.Adapter<InformationAdapter.InformationViewHolder> {
-    private static final String TAG = "InformationAdapter";
+
     private List<Information> informationList;
 
     public InformationAdapter(List<Information> informationList) {
