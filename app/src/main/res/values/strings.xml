@@ -92,4 +92,5 @@
     <string name="channel_description">Canal para notificaciones de bicis</string>
     <string name="favourite_stations">Estaciones favoritas</string>
     <string name="notified_stations">Estaciones con notificaciones</string>
+    <string name="cancel_filter_option">Cancelar</string>
 </resources>

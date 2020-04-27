@@ -1,6 +1,5 @@
 package disca.dadm.valenbike.fragments;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -11,44 +10,36 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toolbar;
+
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
-//import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.adapters.StationsAdapter;
 import disca.dadm.valenbike.interfaces.DataPassListener;
-import disca.dadm.valenbike.models.Position;
 import disca.dadm.valenbike.database.StationDb;
 import disca.dadm.valenbike.interfaces.OnPetitionTaskCompleted;
 import disca.dadm.valenbike.models.Station;
 import disca.dadm.valenbike.models.StationGUI;
-import disca.dadm.valenbike.tasks.HistoryAsyncTask;
 import disca.dadm.valenbike.tasks.PetitionAsyncTask;
 import disca.dadm.valenbike.tasks.StationsDbAsyncTask;
 import disca.dadm.valenbike.tasks.UpdateDbAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
-import disca.dadm.valenbike.utils.test;
 
-import static disca.dadm.valenbike.utils.Tools.getDialogProgressBar;
-import static disca.dadm.valenbike.utils.Tools.isNetworkConnected;
+
 
 
 public class StationsFragment extends Fragment implements OnPetitionTaskCompleted {
     public static final String STATION_RESPONSE = "station_response";
     private static final String TAG = "StationsFragment";
-    private static final int FAVOURITE_STATIONS = 0;
-    private static final int NOTIFIED_STATIONS = 1;
+
     private RecyclerView recyclerView;
     private List<StationGUI> stationsList;
     private DataPassListener dataPassListener;
@@ -56,7 +47,9 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
     private List<StationDb> dbStations;
     private List<StationDb> updatedStations;
     private StationsAdapter stationsAdapter;
-    private WeakReference<UpdateDbAsyncTask> asyncTaskWeakRef;
+
+    private static final int FAVOURITE_STATIONS = 0;
+    private static final int NOTIFIED_STATIONS = 1;
 
     public StationsFragment() {
         // Required empty public constructor
@@ -86,15 +79,13 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         View view = inflater.inflate(R.layout.fragment_stations, container, false);
         recyclerView = view.findViewById(R.id.recyclerViewStations);
 
-        receivedStations = Tools.getStations();
-
         StationsDbAsyncTask dbTask = new StationsDbAsyncTask(this);
         dbTask.execute();
 
-//        if (isNetworkConnected(Objects.requireNonNull(getContext()))) {
-//            PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(), this);
-//            petitionAsyncTask.execute(0);
-//        }
+        if (Tools.isNetworkConnected(Objects.requireNonNull(getContext()))) {
+            PetitionAsyncTask petitionAsyncTask = new PetitionAsyncTask(getContext(), this);
+            petitionAsyncTask.execute(0);
+        }
         initRecyclerView();
         return view;
     }
@@ -112,20 +103,18 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         super.onPause();
     }
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.filter_station_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        Log.d("DEBUG", "SE HA CREADO EL MENU DE OPCIONES");
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_filter:
-                // Show check menu to select filter options
-                AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-                builder.setTitle(R.string.selection_filter_menu_station);
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this.getContext());
 
                 final boolean[] checkedOptions = new boolean[]{
                         false, // Favourite stations
@@ -140,29 +129,42 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
                 });
 
                 builder.setCancelable(true);
+                builder.setTitle(R.string.selection_filter_menu_station);
                 builder.setPositiveButton(R.string.filter_menu_station, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        List<StationGUI> filteredStations = new ArrayList<>();
                         if (checkedOptions[FAVOURITE_STATIONS]) {
-                            stationsList = getFavouriteStations();
+                            filteredStations = getFavouriteStations();
+                            setStationsList(filteredStations);
 
                             if (checkedOptions[NOTIFIED_STATIONS]) {
-                                stationsList.addAll(getNotifiedStations());
+                                filteredStations = getNotifiedStations();
+                                filteredStations.addAll(getNotifiedStations());
+                                setStationsList(filteredStations);
                             }
                         } else {
-                            stationsList = getNotifiedStations();
+                            filteredStations = getNotifiedStations();
+                            setStationsList(filteredStations);
                         }
 
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel_filter_option, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Log.d("DEBUG", "SE HA CANCELADO LA OPCION DE FILTRAR");
                     }
                 });
                 builder.create().show();
                 return true;
 
             default:
-                break;
+                super.onOptionsItemSelected(item);
+                return true;
         }
-        return false;
     }
+
 
     @Override
     public void receivedAllStations(List<Station> stations) {
@@ -201,10 +203,10 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
             Log.d("DEBUG", "NO HAN LLEGADO LAS ESTACIONES DE LA API");
             return;
         }
-//        if (dbStations.isEmpty()) {
-//            Log.d("DEBUG", "NO HAN LLEGADO LAS ESTACIONES DE LA DB");
-//            return;
-//        }
+        if (dbStations.isEmpty()) {
+            Log.d("DEBUG", "NO HAN LLEGADO LAS ESTACIONES DE LA DB");
+            return;
+        }
 
         stationsList = Tools.mergeToStationGui(receivedStations, dbStations);
         initRecyclerView();
@@ -224,6 +226,12 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         updatedStations.add(stationDb);
     }
 
+    public void setStationsList(List<StationGUI> stations) {
+        this.stationsList = stations;
+        stationsAdapter.notifyDataSetChanged();
+    }
+
+
     private void initRecyclerView() {
         stationsAdapter = new StationsAdapter(this, stationsList, dataPassListener, getContext());
         recyclerView.setAdapter(stationsAdapter);
@@ -241,7 +249,6 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
         return favouriteStations;
     }
 
-    // TODO: May be public to implement notifications.
     private List<StationGUI> getNotifiedStations() {
         List<StationGUI> notifiedStations = new ArrayList<>();
 
@@ -253,5 +260,4 @@ public class StationsFragment extends Fragment implements OnPetitionTaskComplete
 
         return notifiedStations;
     }
-
 }

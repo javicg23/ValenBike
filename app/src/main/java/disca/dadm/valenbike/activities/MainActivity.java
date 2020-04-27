@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import disca.dadm.valenbike.R;
@@ -33,6 +34,8 @@ import disca.dadm.valenbike.fragments.InformationFragment;
 import disca.dadm.valenbike.fragments.MapFragment;
 import disca.dadm.valenbike.fragments.StationsFragment;
 import disca.dadm.valenbike.interfaces.DataPassListener;
+import disca.dadm.valenbike.models.Station;
+import disca.dadm.valenbike.models.StationGUI;
 import disca.dadm.valenbike.tasks.PrepopulateDbAsyncTask;
 import disca.dadm.valenbike.tasks.StationsDbAsyncTask;
 import disca.dadm.valenbike.utils.Tools;
@@ -47,10 +50,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static final String TAG_DIRECTIONS = "directions";
     public static final String CHANNEL_ID = "channel";
 
+
     private BottomNavigationView navigationView;
     private String currentFragment;
     private Fragment.SavedState savedState;
     private AlertDialog.Builder alert;
+    private StationsFragment stationsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
         database = ValenbikeDatabase.getInstance(getApplicationContext());
         if (database != null) {
-            Log.d("DEBUG", "SE HA CREADO LA BASE DE DATOS");
             PrepopulateDbAsyncTask task = new PrepopulateDbAsyncTask(this);
             task.execute();
         }
@@ -138,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 }
                 // Display the Stations title on the ActionBar
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.bottom_menu_stations);
+
                 break;
 
             // Display HistoryFragment
